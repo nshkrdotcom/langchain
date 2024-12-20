@@ -1,6 +1,6 @@
 defmodule LangChain.ChatModels.ChatGoogleAI do
   @moduledoc """
-  Parses and validates inputs for making a request for the Google AI  Chat API.
+  Parses and validates inputs for making a request for the Google AI Chat API.
 
   Converts response into more specialized `LangChain` data structures.
 
