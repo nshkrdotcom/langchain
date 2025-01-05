@@ -165,7 +165,7 @@ defmodule LangChain.Chains.SummarizeConversationChainTest do
       assert user_message.role == :user
 
       assert user_message.content ==
-               "Summarize our conversation to this point for future reference."
+               "Summarize our entire conversation up to this point for future reference."
 
       assert assistant_message.role == :assistant
       assert assistant_message.content == summary_text
@@ -204,7 +204,7 @@ defmodule LangChain.Chains.SummarizeConversationChainTest do
       [system, summary_1, summary_2, user_2, ai_2] = updated_chain.messages
       assert system.content == "System"
       assert summary_1.role == :user
-      assert summary_1.content == "Summarize our conversation to this point for future reference."
+      assert summary_1.content == "Summarize our entire conversation up to this point for future reference."
       assert summary_2.role == :assistant
       assert summary_2.content == "fake summary text"
       assert user_2.content == "Question 2"
@@ -229,7 +229,7 @@ defmodule LangChain.Chains.SummarizeConversationChainTest do
       [system, summary_1, summary_2] = updated_chain.messages
       assert system.content == "System"
       assert summary_1.role == :user
-      assert summary_1.content == "Summarize our conversation to this point for future reference."
+      assert summary_1.content == "Summarize our entire conversation up to this point for future reference."
       assert summary_2.role == :assistant
       assert summary_2.content == "fake summary text"
     end
@@ -252,7 +252,7 @@ defmodule LangChain.Chains.SummarizeConversationChainTest do
 
       [summary_1, summary_2, user_2, ai_2] = updated_chain.messages
       assert summary_1.role == :user
-      assert summary_1.content == "Summarize our conversation to this point for future reference."
+      assert summary_1.content == "Summarize our entire conversation up to this point for future reference."
       assert summary_2.role == :assistant
       assert summary_2.content == "fake summary text"
       assert user_2.content == "Question 2"
@@ -275,6 +275,38 @@ defmodule LangChain.Chains.SummarizeConversationChainTest do
 
       assert String.starts_with?(summary_text, "- User")
     end
+
+    test "uses explicitly provided messages", %{
+      llm_anthropic: llm,
+      chain: chain
+    } do
+      # Made NOT LIVE here
+      expect(ChatAnthropic, :call, fn _model, _messages, _tools ->
+        {:ok, Message.new_assistant!("- Fake OpenAI summary")}
+      end)
+
+      summarizer =
+        SummarizeConversationChain.new!(%{
+          llm: llm,
+          threshold_count: 30,
+          keep_count: 2,
+          messages: [
+            Message.new_system!("Custom system message"),
+            Message.new_user!("Custom user message"),
+            Message.new_assistant!("Custom assistant message")
+          ]
+        })
+
+      original_chain = LLMChain.add_messages(chain, get_full_conversation())
+
+      {:ok, used_chain} = SummarizeConversationChain.run(summarizer, original_chain)
+
+      [system, user, assistant, returned] = used_chain.messages
+      assert %Message{role: :system, content: "Custom system message"} = system
+      assert %Message{role: :user, content: "Custom user message"} = user
+      assert %Message{role: :assistant, content: "Custom assistant message"} = assistant
+      assert %Message{role: :assistant, content: "- Fake OpenAI summary"} = returned
+    end
   end
 
   describe "summarize/3" do
@@ -290,7 +322,7 @@ defmodule LangChain.Chains.SummarizeConversationChainTest do
       assert system.role == :system
       assert String.starts_with?(system.content, "You are a helpful travel assistant.")
       assert summary_1.role == :user
-      assert summary_1.content == "Summarize our conversation to this point for future reference."
+      assert summary_1.content == "Summarize our entire conversation up to this point for future reference."
       assert summary_2.role == :assistant
       assert keep_1.role == :user
       assert keep_2.role == :assistant
@@ -354,7 +386,7 @@ defmodule LangChain.Chains.SummarizeConversationChainTest do
       assert system.role == :system
       assert String.starts_with?(system.content, "You are a helpful travel assistant.")
       assert summary_1.role == :user
-      assert summary_1.content == "Summarize our conversation to this point for future reference."
+      assert summary_1.content == "Summarize our entire conversation up to this point for future reference."
       assert summary_2.role == :assistant
       assert summary_2.content == "- Fake OpenAI summary"
     end
@@ -543,7 +575,7 @@ I can provide you with the official booking websites for both. Would you also li
   def previously_summarized_conversation() do
     [
       Message.new_system!("You are a helpful travel assistant."),
-      Message.new_user!("Summarize our conversation to this point for future reference."),
+      Message.new_user!("Summarize our entire conversation up to this point for future reference."),
       Message.new_assistant!(
         "- User seeking help planning a 2-week Italy vacation in September\n- Proposed travel route: Rome (4 days), Florence (4 days), Amalfi Coast (5 days)\n- Transportation recommendations:\n  * Trains for city travel (Rome and Florence)\n  * Potential car rental for Amalfi Coast\n- Conversation focused on itinerary planning and transportation logistics\n- User interested in both urban and coastal experiences\n- Detailed location and time allocation discussed\n- Awaiting further details on hotel preferences and specific interests in each destination"
       ),
