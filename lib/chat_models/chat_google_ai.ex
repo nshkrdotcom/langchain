@@ -9,7 +9,7 @@ defmodule LangChain.ChatModels.ChatGoogleAI.GenerationConfig do
 
   use Ecto.Schema
   import Ecto.Changeset
-  #alias LangChain.GoogleAI.Schema, as: GoogleAISchema
+  alias LangChain.LangChainError
 
   @primary_key false
   embedded_schema do
