@@ -304,7 +304,7 @@ defmodule ChatModels.ChatGoogleAITest do
       message = "You are a helpful assistant."
       data = ChatGoogleAI.for_api(google_ai, [Message.new_system!(message)], [])
 
-      assert %{"system_instruction" => %{"parts" => [%{"text" => ^message}]}} = data
+      assert %{"systemInstruction" => %{"parts" => [%{"text" => ^message}]}} = data
     end
 
     test "does not add system instruction if not present", %{google_ai: google_ai} do
