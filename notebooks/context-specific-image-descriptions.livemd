@@ -75,7 +75,7 @@ Here we setup our messages. The user message contains multiple `ContentPart`s. O
 
 This is where we add **context** to our image description request. We'll assume that we have programmatic access to the images and that we also have access to some data about the image from an external system.
 
-**TIP:** To get consitency across all the images in our set, we'll have better success by providing an example of the type of output we want.
+**TIP:** To get consistency across all the images in our set, we'll have better success by providing an example of the type of output we want.
 
 **NOTE:** Make sure the `:media` option matches both the image and what is supported by the LLM you are connecting with.
 

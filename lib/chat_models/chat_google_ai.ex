@@ -1,3 +1,94 @@
+defmodule LangChain.ChatModels.ChatGoogleAI.GenerationConfig do
+  @moduledoc """
+  Represents the generation configuration for interacting with the Google AI API.
+
+  This module defines a struct that mirrors the `GenerationConfig` object in the
+  Gemini API documentation, allowing for fine-grained control over the model's
+  generation process and output format.
+  """
+
+  use Ecto.Schema
+  import Ecto.Changeset
+  #alias LangChain.GoogleAI.Schema, as: GoogleAISchema
+
+  @primary_key false
+  embedded_schema do
+    field :stop_sequences, {:array, :string}
+    field :response_mime_type, :string, default: "text/plain"
+    field :response_schema, :map
+    field :candidate_count, :integer, default: 1
+    field :max_output_tokens, :integer
+    field :temperature, :float, default: 0.9
+    field :top_p, :float, default: 1.0
+    field :top_k, :integer, default: 1
+    field :presence_penalty, :float
+    field :frequency_penalty, :float
+    field :response_logprobs, :boolean, default: false
+    field :logprobs, :integer
+  end
+
+  @type t :: %__MODULE__{}
+
+  @create_fields [
+    :stop_sequences,
+    :response_mime_type,
+    :response_schema,
+    :candidate_count,
+    :max_output_tokens,
+    :temperature,
+    :top_p,
+    :top_k,
+    :presence_penalty,
+    :frequency_penalty,
+    :response_logprobs,
+    :logprobs
+  ]
+
+  @doc """
+  Creates a new `GenerationConfig` struct.
+  """
+  @spec new(attrs :: map()) :: {:ok, t} | {:error, Ecto.Changeset.t()}
+  def new(attrs \\ %{}) do
+    %__MODULE__{}
+    |> __MODULE__.changeset(attrs)
+    |> apply_action(:insert)
+  end
+
+  @doc """
+  Creates a changeset for the `GenerationConfig` struct.
+  """
+  @spec changeset(t(), map()) :: Ecto.Changeset.t()
+#  def changeset(struct, attrs \\ %{}) do
+#    struct
+#    |> cast(attrs, @create_fields)
+#    |> validate_required([:response_mime_type])
+#    |> validate_inclusion(:response_mime_type, [
+#      "text/plain",
+#      "application/json"
+#    ])
+#    |> validate_number(:candidate_count, greater_than_or_equal_to: 1)
+#    |> validate_number(:temperature, greater_than_or_equal_to: 0.0, less_than_or_equal_to: 2.0)
+#    |> validate_number(:top_p, greater_than_or_equal_to: 0.0, less_than_or_equal_to: 1.0)
+#    |> validate_number(:presence_penalty, greater_than_or_equal_to: -2.0, less_than_or_equal_to: 2.0)
+#    |> validate_number(:frequency_penalty, greater_than_or_equal_to: -2.0, less_than_or_equal_to: 2.0)
+#  end
+  def changeset(struct, attrs \\ %{}) do
+    struct
+    |> cast(attrs, @create_fields)
+    |> validate_required([:response_mime_type])
+    |> validate_inclusion(:response_mime_type, [
+      "text/plain",
+      "application/json"
+    ])
+    |> validate_number(:candidate_count, greater_than_or_equal_to: 1)
+    |> validate_number(:temperature, greater_than_or_equal_to: 0.0, less_than_or_equal_to: 2.0)
+    |> validate_number(:top_p, greater_than_or_equal_to: 0.0, less_than_or_equal_to: 1.0)
+    |> validate_number(:presence_penalty, greater_than_or_equal_to: -2.0, less_than_or_equal_to: 2.0)
+    |> validate_number(:frequency_penalty, greater_than_or_equal_to: -2.0, less_than_or_equal_to: 2.0)
+end
+
+end
+
 defmodule LangChain.ChatModels.ChatGoogleAI do
   @moduledoc """
   Parses and validates inputs for making a request for the Google AI Chat API.
@@ -14,6 +105,7 @@ defmodule LangChain.ChatModels.ChatGoogleAI do
   require Logger
   import Ecto.Changeset
   alias __MODULE__
+  alias __MODULE__.GenerationConfig
   alias LangChain.Config
   alias LangChain.ChatModels.ChatModel
   alias LangChain.ChatModels.ChatOpenAI
@@ -82,6 +174,10 @@ defmodule LangChain.ChatModels.ChatGoogleAI do
     # for the list of categories and thresholds
     field :safety_settings, {:array, :map}, default: []
 
+
+    #field :generation_config, LangChain.ChatModels.ChatGoogleAI.GenerationConfig, virtual: true
+    embeds_one :generation_config, LangChain.ChatModels.ChatGoogleAI.GenerationConfig
+
     field :stream, :boolean, default: false
 
     # A list of maps for callback handlers
@@ -99,6 +195,7 @@ defmodule LangChain.ChatModels.ChatGoogleAI do
     :top_p,
     :top_k,
     :receive_timeout,
+    #:generation_config,
     :stream,
     :callbacks,
     :safety_settings
@@ -143,7 +240,18 @@ defmodule LangChain.ChatModels.ChatGoogleAI do
   defp common_validation(changeset) do
     changeset
     |> validate_required(@required_fields)
+    #|> cast(attrs, @create_fields -- [:generation_config])
+    |> cast_embed(:generation_config, with: &GenerationConfig.changeset/2)
+ #   |> cast_embed(:generation_config, with: &GenerationConfig.changeset/2)
+
+#    |> cast_embed(:generation_config,
+#      with: &__MODULE__.changeset/1,
+#      required: false
+#    )
   end
+
+
+
 
   def for_api(%ChatGoogleAI{} = google_ai, messages, functions) do
     {system, messages} =
@@ -167,12 +275,28 @@ defmodule LangChain.ChatModels.ChatGoogleAI do
     req =
       %{
         "contents" => messages_for_api,
-        "generationConfig" => %{
-          "temperature" => google_ai.temperature,
-          "topP" => google_ai.top_p,
-          "topK" => google_ai.top_k
-        }
+        "generationConfig" =>
+          if google_ai.generation_config do
+            google_config_for_api(google_ai.generation_config)
+          else
+            %{
+              "temperature" => google_ai.temperature,
+              "topP" => google_ai.top_p,
+              "topK" => google_ai.top_k
+            }
+          end
       }
+#
+#
+#    req =
+ #     %{
+ #       "contents" => messages_for_api,
+ #       "generationConfig" => %{
+ #         "temperature" => google_ai.temperature,
+ #         "topP" => google_ai.top_p,
+ #         "topK" => google_ai.top_k
+ #       }
+ #     }
       |> LangChain.Utils.conditionally_add_to_map("system_instruction", system_instruction)
       |> LangChain.Utils.conditionally_add_to_map("safetySettings", google_ai.safety_settings)
 
@@ -186,8 +310,35 @@ defmodule LangChain.ChatModels.ChatGoogleAI do
         }
       ])
     else
-      req
+      if google_ai.generation_config do
+        Map.put(
+          req,
+          "generationConfig",
+          google_config_for_api(google_ai.generation_config)
+        )
+      else
+        req
+      end
     end
+  end
+
+  defp google_config_for_api(%__MODULE__.GenerationConfig{} = config) do
+    %{
+      "stopSequences" => config.stop_sequences,
+      "responseMimeType" => config.response_mime_type,
+      "responseSchema" => config.response_schema,
+      "candidateCount" => config.candidate_count,
+      "maxOutputTokens" => config.max_output_tokens,
+      "temperature" => config.temperature,
+      "topP" => config.top_p,
+      "topK" => config.top_k,
+      "presencePenalty" => config.presence_penalty,
+      "frequencyPenalty" => config.frequency_penalty,
+      "responseLogprobs" => config.response_logprobs,
+      "logprobs" => config.logprobs
+    }
+    |> Enum.reject(fn {_k, v} -> is_nil(v) end)
+    |> Map.new()
   end
 
   @doc false
@@ -487,9 +638,28 @@ defmodule LangChain.ChatModels.ChatGoogleAI do
         :ok
     end
 
-    candidates
-    |> Enum.map(&do_process_response(model, &1, message_type))
+    case model.generation_config do
+      %__MODULE__.GenerationConfig{response_mime_type: "application/json", response_schema: schema} ->
+        # Parse response as JSON and validate against the schema
+        candidates
+        |> Enum.map(&validate_json_response(&1, schema))
+        |> Enum.map(& &1)
+
+      %__MODULE__.GenerationConfig{response_mime_type: "text/plain"} ->
+        # Handle as plain text (current behavior)
+        candidates
+        |> Enum.map(&do_process_response(model, &1, message_type))
+
+      _ ->
+        # Handle other MIME types or no specific MIME type
+        candidates
+        |> Enum.map(&do_process_response(model, &1, message_type))
+    #candidates
+    #|> Enum.map(&do_process_response(model, &1, message_type))
+    end
   end
+
+
 
   # Function Call in a Message
   def do_process_response(
@@ -686,6 +856,41 @@ defmodule LangChain.ChatModels.ChatGoogleAI do
     nil
   end
 
+
+  defp validate_json_response(candidate, schema) do
+    content = 
+      case candidate["content"] do
+        %{"parts" => [%{"text" => text} | _]} -> text
+        text when is_binary(text) -> text
+        _ -> ""
+      end
+    case Jason.decode(content) do
+      {:ok, json} ->
+        # TODO: Implement schema validation using a library like `ex_json_schema`
+        case validate_against_schema(json, schema) do
+          :ok ->
+            candidate
+
+          {:error, reason} ->
+            Logger.warning("JSON response does not match schema: #{reason}")
+            # Potentially create a new error message to send back to the model
+            {:error, "Invalid JSON response: #{reason}"}
+        end
+
+      {:error, %Jason.DecodeError{} = error} ->
+        Logger.warning("Failed to parse JSON response: #{inspect(error)}")
+        {:error, "Invalid JSON response: #{inspect(error)}"}
+    end
+  end
+
+  # Placeholder for a schema validation function (needs actual implementation)
+  defp validate_against_schema(_json, _schema) do
+    # TODO: Implement actual schema validation using a library like `ex_json_schema`
+    :ok
+  end
+
+  
+
   defp map_role(role) do
     case role do
       :assistant -> :model
@@ -759,3 +964,4 @@ defmodule LangChain.ChatModels.ChatGoogleAI do
     nil
   end
 end
+

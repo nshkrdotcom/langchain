@@ -240,6 +240,7 @@ defmodule LangChain.Function do
     |> validate_length(:name, max: 64)
     |> ensure_single_parameter_option()
     |> validate_function_and_arity()
+    |> validate_parameters_schema_map()
   end
 
   @doc """
@@ -315,6 +316,20 @@ defmodule LangChain.Function do
         changeset
     end
   end
+
+defp validate_parameters_schema_map(changeset) do
+  case get_field(changeset, :parameters_schema) do
+    nil ->
+      changeset
+
+    schema when is_map(schema) ->
+      # TODO: Add validation using a JSON Schema validator library (e.g., `ex_json_schema`)
+      changeset
+
+    _ ->
+      add_error(changeset, :parameters_schema, "must be a valid JSON Schema map")
+  end
+end
 
   @doc """
   Given a list of functions, return the `display_text` for the named function.
