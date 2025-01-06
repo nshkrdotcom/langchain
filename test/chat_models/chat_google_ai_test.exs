@@ -30,8 +30,8 @@ defmodule ChatModels.ChatGoogleAITest do
 
   describe "new/1" do
     test "works with minimal attr" do
-      assert {:ok, %ChatGoogleAI{} = google_ai} = ChatGoogleAI.new(%{"model" => "gemini-pro"})
-      assert google_ai.model == "gemini-pro"
+      assert {:ok, %ChatGoogleAI{} = google_ai} = ChatGoogleAI.new(%{"model" => "gemini-2.0-flash-exp"})
+      assert google_ai.model == "gemini-2.0-flash-exp"
     end
 
     test "returns error when invalid" do
@@ -67,7 +67,7 @@ defmodule ChatModels.ChatGoogleAITest do
     setup do
       {:ok, google_ai} =
         ChatGoogleAI.new(%{
-          "model" => "gemini-pro",
+          "model" => "gemini-2.0-flash-exp",
           "temperature" => 1.0,
           "top_p" => 1.0,
           "top_k" => 1.0
@@ -641,7 +641,7 @@ defmodule ChatModels.ChatGoogleAITest do
     test "creates expected map" do
       model =
         ChatGoogleAI.new!(%{
-          model: "gemini-1.5-flash",
+          model: "gemini-2.0-flash-exp",
           temperature: 0,
           frequency_penalty: 0.5,
           seed: 123,
@@ -653,7 +653,7 @@ defmodule ChatModels.ChatGoogleAITest do
 
       assert result == %{
                "endpoint" => "https://generativelanguage.googleapis.com",
-               "model" => "gemini-1.5-flash",
+               "model" => "gemini-2.0-flash-exp",
                "module" => "Elixir.LangChain.ChatModels.ChatGoogleAI",
                "receive_timeout" => 60000,
                "stream" => false,
@@ -669,16 +669,16 @@ defmodule ChatModels.ChatGoogleAITest do
 
   describe "build_url/1" do
     test "builds the correct URL for the request" do
-      llm = ChatGoogleAI.new!(%{model: "gemini-1.5-flash", stream: false})
+      llm = ChatGoogleAI.new!(%{model: "gemini-2.0-flash-exp", stream: false})
       result = ChatGoogleAI.build_url(llm)
 
       assert result =~
-               "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key="
+               "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key="
     end
   end
 
   describe "live tests and token usage information" do
-    @tag live_call: true, live_google_ai: true
+
     test "basic non-streamed response works and fires token usage callback" do
       handlers = %{
         on_llm_token_usage: fn _model, usage ->
@@ -719,7 +719,6 @@ defmodule ChatModels.ChatGoogleAITest do
       assert %TokenUsage{input: 8, output: 2} = usage
     end
 
-    @tag live_call: true, live_google_ai: true
     test "streamed response works and fires token usage callback" do
       handlers = %{
         on_llm_token_usage: fn _model, usage ->
@@ -761,7 +760,7 @@ defmodule ChatModels.ChatGoogleAITest do
   end
 
   describe "calculator with GoogleAI model" do
-    @tag live_call: true, live_google_ai: true
+
     test "should work" do
       alias LangChain.Chains.LLMChain
       alias LangChain.Tools.Calculator
@@ -818,14 +817,14 @@ defmodule ChatModels.ChatGoogleAITest do
     end
   end
 
-  @tag live_call: true, live_google_ai: true
+
   test "image classification with Google AI model" do
     alias LangChain.Chains.LLMChain
     alias LangChain.Message
     alias LangChain.Message.ContentPart
     alias LangChain.Utils.ChainResult
 
-    model = ChatGoogleAI.new!(%{temperature: 0, stream: false, model: "gemini-1.5-flash"})
+    model = ChatGoogleAI.new!(%{temperature: 0, stream: false, model: "gemini-2.0-flash-exp"})
 
     image_data =
       File.read!("test/support/images/barn_owl.jpg")
@@ -847,6 +846,7 @@ defmodule ChatModels.ChatGoogleAITest do
   end
 
   describe "JSON response validation" do
+    @tag live_google_ai: true
     test "validates successful JSON response against schema", %{model: model} do
       config = %{
         response_mime_type: "application/json",
@@ -858,9 +858,9 @@ defmodule ChatModels.ChatGoogleAITest do
           }
         }
       }
-  
+
       model = %{model | generation_config: LangChain.ChatModels.ChatGoogleAI.GenerationConfig.new!(config)}
-      
+
       response = %{
         "candidates" => [
           %{
@@ -872,13 +872,14 @@ defmodule ChatModels.ChatGoogleAITest do
           }
         ]
       }
-  
+
       result = ChatGoogleAI.do_process_response(model, response)
       assert length(result) == 1
       assert hd(result)["name"] == "John"
       assert hd(result)["age"] == 30
     end
-  
+
+
     test "handles invalid JSON response", %{model: model} do
       config = %{
         response_mime_type: "application/json",
@@ -889,9 +890,9 @@ defmodule ChatModels.ChatGoogleAITest do
           }
         }
       }
-  
+
       model = %{model | generation_config: LangChain.ChatModels.ChatGoogleAI.GenerationConfig.new!(config)}
-      
+
       response = %{
         "candidates" => [
           %{
@@ -903,11 +904,12 @@ defmodule ChatModels.ChatGoogleAITest do
           }
         ]
       }
-  
+
       assert [error: "Invalid JSON response: %Jason.DecodeError{position: 1, token: nil, data: \"{invalid_json}\"}"] = ChatGoogleAI.do_process_response(model, response)
       #assert {:error, _} = ChatGoogleAI.do_process_response(model, response)
     end
-  
+
+
     test "handles non-JSON response when JSON expected", %{model: model} do
       config = %{
         response_mime_type: "application/json",
@@ -918,9 +920,9 @@ defmodule ChatModels.ChatGoogleAITest do
           }
         }
       }
-  
+
       model = %{model | generation_config: LangChain.ChatModels.ChatGoogleAI.GenerationConfig.new!(config)}
-      
+
       response = %{
         "candidates" => [
           %{
@@ -933,10 +935,10 @@ defmodule ChatModels.ChatGoogleAITest do
         ]
       }
 
-      assert [error: "Invalid JSON response: %Jason.DecodeError{position: 0, token: nil, data: \"This is plain text\"}"] = ChatGoogleAI.do_process_response(model, response)  
+      assert [error: "Invalid JSON response: %Jason.DecodeError{position: 0, token: nil, data: \"This is plain text\"}"] = ChatGoogleAI.do_process_response(model, response)
       #assert {:error, _} = ChatGoogleAI.do_process_response(model, response)
     end
-  
+
     test "falls back to text processing when no JSON config", %{model: model} do
       response = %{
         "candidates" => [
@@ -951,7 +953,7 @@ defmodule ChatModels.ChatGoogleAITest do
           }
         ]
       }
-  
+
       result = ChatGoogleAI.do_process_response(model, response)
       assert length(result) == 1
       [content_part] = hd(result).content
@@ -959,4 +961,3 @@ defmodule ChatModels.ChatGoogleAITest do
     end
   end
 end
-
