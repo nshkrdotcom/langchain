@@ -112,8 +112,19 @@ defmodule LangChain.MessageProcessors.JsonProcessor do
   def run(%LLMChain{} = chain, %Message{} = message) do
     case Jason.decode(content_to_string(message.processed_content)) do
       {:ok, parsed} ->
-        if chain.verbose, do: IO.puts("Parsed JSON text to a map")
-        {:cont, %Message{message | processed_content: parsed}}
+
+### MODIFIED CODE START
+        case validate_json(parsed, chain) do
+          :ok ->
+            if chain.verbose, do: IO.puts("Parsed and validated JSON")
+            {:cont, %Message{message | processed_content: parsed}}
+          
+          {:error, reason} ->
+            {:halt, Message.new_user!("ERROR: JSON schema validation failed: #{reason}")}
+        end
+### MODIFIED CODE END (commented out code after)
+#        if chain.verbose, do: IO.puts("Parsed JSON text to a map")
+ #       {:cont, %Message{message | processed_content: parsed}}
 
       {:error, %Jason.DecodeError{} = error} ->
         error_message = Jason.DecodeError.message(error)
@@ -141,4 +152,73 @@ defmodule LangChain.MessageProcessors.JsonProcessor do
        do: content
 
   defp content_to_string(content), do: content
+
+  defp validate_json(parsed_json, chain) do
+    case get_schema(chain) do
+      nil -> :ok
+      schema -> do_validate_schema(parsed_json, schema)
+    end
+  end
+
+  defp get_schema(%{llm: llm}) do
+    case llm do
+      %{generation_config: %{response_schema: schema}} -> schema
+      _ -> nil
+    end
+  end
+
+  defp do_validate_schema(json, schema) do
+    # Basic schema validation - can be expanded
+    case validate_type(json, schema) do
+      :ok -> validate_properties(json, schema)
+      error -> error
+    end
+  end
+
+  defp validate_type(json, %{"type" => expected_type}) do
+    actual_type = get_json_type(json)
+    if actual_type == expected_type do
+      :ok
+    else
+      {:error, "Expected #{expected_type}, got #{actual_type}"}
+    end
+  end
+
+  defp validate_type(_, _), do: :ok
+
+  defp get_json_type(value) when is_map(value), do: "object"
+  defp get_json_type(value) when is_list(value), do: "array"
+  defp get_json_type(value) when is_binary(value), do: "string"
+  defp get_json_type(value) when is_number(value), do: "number"
+  defp get_json_type(value) when is_boolean(value), do: "boolean"
+  defp get_json_type(nil), do: "null"
+
+  defp validate_properties(json, %{"properties" => props, "required" => required}) when is_map(json) do
+    with :ok <- validate_required_fields(json, required),
+         :ok <- validate_property_types(json, props) do
+      :ok
+    end
+  end
+
+  defp validate_properties(_, _), do: :ok
+
+  defp validate_required_fields(json, required) do
+    case Enum.find(required, fn field -> !Map.has_key?(json, field) end) do
+      nil -> :ok
+      field -> {:error, "Missing required field: #{field}"}
+    end
+  end
+
+  defp validate_property_types(json, props) do
+    Enum.find_value(props, :ok, fn {key, prop_schema} ->
+      case Map.get(json, key) do
+        nil -> nil
+        value -> 
+          case validate_type(value, prop_schema) do
+            :ok -> nil
+            error -> error
+          end
+      end
+    end)
+  end
 end

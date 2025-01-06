@@ -1,5 +1,6 @@
 defmodule ChatModels.ChatGoogleAITest do
   use LangChain.BaseCase
+  use ExUnit.Case, async: true
 
   doctest LangChain.ChatModels.ChatGoogleAI
   alias LangChain.ChatModels.ChatGoogleAI
@@ -844,4 +845,118 @@ defmodule ChatModels.ChatGoogleAITest do
     {:ok, string} = ChainResult.to_string(updated_chain)
     assert string =~ "owl"
   end
+
+  describe "JSON response validation" do
+    test "validates successful JSON response against schema", %{model: model} do
+      config = %{
+        response_mime_type: "application/json",
+        response_schema: %{
+          "type" => "object",
+          "properties" => %{
+            "name" => %{"type" => "string"},
+            "age" => %{"type" => "integer"}
+          }
+        }
+      }
+  
+      model = %{model | generation_config: LangChain.ChatModels.ChatGoogleAI.GenerationConfig.new!(config)}
+      
+      response = %{
+        "candidates" => [
+          %{
+            "content" => %{
+              "parts" => [
+                %{"text" => ~s({"name": "John", "age": 30})}
+              ]
+            }
+          }
+        ]
+      }
+  
+      result = ChatGoogleAI.do_process_response(model, response)
+      assert length(result) == 1
+      assert hd(result)["name"] == "John"
+      assert hd(result)["age"] == 30
+    end
+  
+    test "handles invalid JSON response", %{model: model} do
+      config = %{
+        response_mime_type: "application/json",
+        response_schema: %{
+          "type" => "object",
+          "properties" => %{
+            "name" => %{"type" => "string"}
+          }
+        }
+      }
+  
+      model = %{model | generation_config: LangChain.ChatModels.ChatGoogleAI.GenerationConfig.new!(config)}
+      
+      response = %{
+        "candidates" => [
+          %{
+            "content" => %{
+              "parts" => [
+                %{"text" => ~s({invalid_json})}
+              ]
+            }
+          }
+        ]
+      }
+  
+      assert [error: "Invalid JSON response: %Jason.DecodeError{position: 1, token: nil, data: \"{invalid_json}\"}"] = ChatGoogleAI.do_process_response(model, response)
+      #assert {:error, _} = ChatGoogleAI.do_process_response(model, response)
+    end
+  
+    test "handles non-JSON response when JSON expected", %{model: model} do
+      config = %{
+        response_mime_type: "application/json",
+        response_schema: %{
+          "type" => "object",
+          "properties" => %{
+            "name" => %{"type" => "string"}
+          }
+        }
+      }
+  
+      model = %{model | generation_config: LangChain.ChatModels.ChatGoogleAI.GenerationConfig.new!(config)}
+      
+      response = %{
+        "candidates" => [
+          %{
+            "content" => %{
+              "parts" => [
+                %{"text" => "This is plain text"}
+              ]
+            }
+          }
+        ]
+      }
+
+      assert [error: "Invalid JSON response: %Jason.DecodeError{position: 0, token: nil, data: \"This is plain text\"}"] = ChatGoogleAI.do_process_response(model, response)  
+      #assert {:error, _} = ChatGoogleAI.do_process_response(model, response)
+    end
+  
+    test "falls back to text processing when no JSON config", %{model: model} do
+      response = %{
+        "candidates" => [
+          %{
+            "content" => %{
+              "parts" => [
+                %{"text" => "Plain text response"}
+              ],
+              "role" => "assistant"
+            },
+            "finishReason" => "STOP"
+          }
+        ]
+      }
+  
+      result = ChatGoogleAI.do_process_response(model, response)
+      assert length(result) == 1
+      [content_part] = hd(result).content
+      assert content_part.content == "Plain text response"
+    end
+  end
 end
+

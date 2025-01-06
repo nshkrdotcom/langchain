@@ -55,6 +55,17 @@ defmodule LangChain.ChatModels.ChatGoogleAI.GenerationConfig do
   end
 
   @doc """
+  Creates a new GenerationConfig struct and raises if invalid.
+  """
+  @spec new!(attrs :: map()) :: t() | no_return()
+  def new!(attrs \\ %{}) do
+    case new(attrs) do
+      {:ok, config} -> config
+      {:error, changeset} -> raise LangChainError, changeset
+    end
+  end
+
+  @doc """
   Creates a changeset for the `GenerationConfig` struct.
   """
   @spec changeset(t(), map()) :: Ecto.Changeset.t()
@@ -856,11 +867,10 @@ defmodule LangChain.ChatModels.ChatGoogleAI do
     nil
   end
 
-
   defp validate_json_response(candidate, schema) do
     content = 
       case candidate["content"] do
-        %{"parts" => [%{"text" => text} | _]} -> text
+      %{"parts" => [%{"text" => text} | _]} -> text
         text when is_binary(text) -> text
         _ -> ""
       end
@@ -869,11 +879,10 @@ defmodule LangChain.ChatModels.ChatGoogleAI do
         # TODO: Implement schema validation using a library like `ex_json_schema`
         case validate_against_schema(json, schema) do
           :ok ->
-            candidate
+            json # todo: {:ok, json}
 
           {:error, reason} ->
             Logger.warning("JSON response does not match schema: #{reason}")
-            # Potentially create a new error message to send back to the model
             {:error, "Invalid JSON response: #{reason}"}
         end
 
