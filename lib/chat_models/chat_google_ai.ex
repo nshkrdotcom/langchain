@@ -189,7 +189,7 @@ defmodule LangChain.ChatModels.ChatGoogleAI do
             }
           end
       }
-      |> LangChain.Utils.conditionally_add_to_map("systemInstructions", system_instruction)
+      |> LangChain.Utils.conditionally_add_to_map("systemInstruction", system_instruction)
       |> LangChain.Utils.conditionally_add_to_map("safetySettings", google_ai.safety_settings)
       #|> LangChain.Utils.conditionally_add_to_map("generationConfig", google_ai.generation_config)
 
