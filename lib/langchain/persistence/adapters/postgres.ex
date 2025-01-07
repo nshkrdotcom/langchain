@@ -1,5 +1,4 @@
 defmodule LangChain.Persistence.PostgresAdapter do
-  alias LangChain.Repo
   
   def store(interaction, _opts \\ []) do
     {:ok, interaction}

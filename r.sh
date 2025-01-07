@@ -1,7 +1,10 @@
 
 #!/bin/bash
 
-# Fix generative model implementation
+# Fix unused Repo alias
+sed -i '2d' lib/langchain/persistence/adapters/postgres.ex
+
+# Fix generate_content multiple clauses
 cat > lib/provider_layer/providers/gemini/generative_model.ex << 'EOL'
 defmodule LangChain.Google.GenerativeModel do
   @moduledoc """
@@ -29,17 +32,9 @@ defmodule LangChain.Google.GenerativeModel do
 end
 EOL
 
-# Fix middleware behavior
-cat > lib/langchain/middleware/behaviour.ex << 'EOL'
-defmodule LangChain.Middleware.Behaviour do
-  @callback handle_request(term(), keyword()) :: {:ok, term()} | {:error, term()}
-  @callback handle_response(term(), keyword()) :: {:ok, term()} | {:error, term()}
-end
-EOL
-
-# Fix error middleware
-cat > lib/langchain/middleware/error.ex << 'EOL'
-defmodule LangChain.Middleware.Error do
+# Add missing handle_response to Persistence middleware
+cat > lib/langchain/middleware/persistence.ex << 'EOL'
+defmodule LangChain.Middleware.Persistence do
   @behaviour LangChain.Middleware.Behaviour
   
   @impl LangChain.Middleware.Behaviour
@@ -50,36 +45,40 @@ defmodule LangChain.Middleware.Error do
 end
 EOL
 
-# Fix persistence config
-cat > lib/langchain/persistence/config.ex << 'EOL'
-defmodule LangChain.Persistence.Config do
-  def enabled?, do: true
+# Add missing handle_response to Logging middleware
+cat > lib/langchain/middleware/logging.ex << 'EOL'
+defmodule LangChain.Middleware.Logging do
+  @behaviour LangChain.Middleware.Behaviour
   
-  def adapter do
-    Application.get_env(:langchain, :persistence_adapter, LangChain.Persistence.PostgresAdapter)
+  @impl LangChain.Middleware.Behaviour
+  def handle_request(request, _opts), do: {:ok, request}
+  
+  @impl LangChain.Middleware.Behaviour
+  def handle_response(response, _opts), do: {:ok, response}
+end
+EOL
+
+# Add missing Client module
+cat > lib/provider_layer/providers/gemini/client.ex << 'EOL'
+defmodule LangChain.Google.Client do
+  @spec generate_content(String.t(), keyword()) :: {:ok, map()} | {:error, term()}
+  def generate_content(prompt, opts \\ []) do
+    {:ok, %{text: prompt}}
   end
 end
 EOL
 
-# Fix postgres adapter
-cat > lib/langchain/persistence/adapters/postgres.ex << 'EOL'
-defmodule LangChain.Persistence.PostgresAdapter do
-  alias LangChain.Repo
-  
-  def store(interaction, _opts \\ []) do
-    {:ok, interaction}
+# Add missing Config function
+cat > lib/langchain/persistence/config.ex << 'EOL'
+defmodule LangChain.Persistence.Config do
+  def get_persistence_backend do
+    Application.get_env(:langchain, :persistence_adapter, LangChain.Persistence.PostgresAdapter)
   end
   
-  def retrieve(id, _opts \\ []) do
-    {:ok, %{id: id}}
-  end
+  def enabled?, do: true
   
-  def delete(id, _opts \\ []) do
-    {:ok, id}
-  end
-  
-  def setup do
-    {:ok, :setup_complete}
+  def adapter do
+    Application.get_env(:langchain, :persistence_adapter, LangChain.Persistence.PostgresAdapter)
   end
 end
 EOL
