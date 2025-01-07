@@ -67,8 +67,14 @@ defmodule LangChain.Provider.Gemini.Provider do
                   |> String.trim()
 
                 case Jason.decode(cleaned_text) do
-                  {:ok, decoded} when is_map(decoded) and map_size(decoded) > 0 -> {:ok, decoded}
-                  _ -> {:error, "Invalid JSON response"}
+                  {:ok, decoded} when is_map(decoded) ->
+                    if map_size(decoded) > 0 and not (Map.keys(decoded) -- ["type", "properties"] == []) do
+                      {:ok, decoded}
+                    else
+                      {:error, "Invalid JSON structure"}
+                    end
+                  _ ->
+                    {:error, "Invalid JSON response"}
                 end
             end
         end
