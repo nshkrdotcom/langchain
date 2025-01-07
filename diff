@@ -1,0 +1,47 @@
+
+@@ file: lib/provider_layer/providers/gemini/provider.ex
+- def generate_content(prompt, opts \\ []) do
+-   case GenerativeModel.generate_content(prompt, opts) do
+-     {:ok, response} -> {:ok, response.text}
+-     error -> error
+-   end
+- end
++ def generate_content(prompt, opts \\ []) do
++   case GenerativeModel.generate_content(prompt, opts) do
++     {:ok, response} -> 
++       text = get_in(response, ["candidates", Access.at(0), "content", "parts", Access.at(0), "text"])
++       {:ok, text}
++     error -> error
++   end
++ end
+
+@@ file: test/unit/provider_layer/providers/gemini/provider_test.exs
+- test "generates structured JSON response" do
+-   prompt = """
+-   Return a JSON object listing 3 programming languages with their main uses.
+-   Format: {"languages":[{"name":"lang","main_use":"use"}]}
+-   """
+-
+-   {:ok, response} = Provider.generate_content(prompt)
+-   assert is_binary(response)
+-   assert String.contains?(response, "{")
+-   assert String.contains?(response, "languages")
+-   decoded = Jason.decode!(response)
+-   assert Map.has_key?(decoded, "languages")
+-   IO.puts("\nPrompt: #{prompt}")
+-   IO.puts("Response: #{response}")
+- end
++ test "generates structured JSON response" do
++   prompt = """
++   Generate a JSON response in this exact format, no other text: {"languages":[{"name":"Python","main_use":"Data Science"},{"name":"JavaScript","main_use":"Web Development"},{"name":"Java","main_use":"Enterprise Apps"}]}
++   """
++   
++   {:ok, response} = Provider.generate_content(prompt)
++   assert is_binary(response)
++   decoded = Jason.decode!(response)
++   assert %{"languages" => languages} = decoded
++   assert length(languages) == 3
++   IO.puts("\nPrompt: #{prompt}")
++   IO.puts("Response: #{response}")
++ end
+

@@ -1,20 +1,17 @@
-defmodule LangChain.ProviderLayer.Providers.Gemini.Provider do
-  @behaviour LangChain.Provider
-  alias LangChain.Google.GenerativeModel
-
-  @impl LangChain.Provider
-  def generate_content(prompt, opts \\ []) do
-    case GenerativeModel.generate_content(prompt, opts) do
-      {:ok, response} -> {:ok, response.text}
-      error -> error
-    end
-  end
-
-  @doc """
-  Simplified generate function that matches the test expectations
-  """
-  def generate(nil), do: {:error, "Prompt cannot be nil"}
-  def generate(prompt) when is_binary(prompt) do
-    generate_content(prompt)
-  end
-end
+     {:ok, response} -> 
+       text = get_in(response, ["candidates", Access.at(0), "content", "parts", Access.at(0), "text"])
+       {:ok, text}
+     {:ok, response} -> 
+       text = get_in(response, ["candidates", Access.at(0), "content", "parts", Access.at(0), "text"])
+       {:ok, text}
+     {:ok, response} -> 
+       text = get_in(response, ["candidates", Access.at(0), "content", "parts", Access.at(0), "text"])
+       {:ok, text}
+ def generate_content(prompt, opts \\ []) do
+   case GenerativeModel.generate_content(prompt, opts) do
+     {:ok, response} -> 
+       text = get_in(response, ["candidates", Access.at(0), "content", "parts", Access.at(0), "text"])
+       {:ok, text}
+     error -> error
+   end
+ end

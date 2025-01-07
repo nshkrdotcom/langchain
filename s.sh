@@ -9,3 +9,4 @@ git push
 ssh replit_langchain 'bash -s' < f.sh
 rm r.sh
 #nano r.sh
+rm diff

@@ -9,9 +9,10 @@ fi
 
 current_file=""
 while IFS= read -r line; do
-    if [[ $line == @"@ file:"* ]]; then
+    if [[ $line == "@@ file:"* ]]; then
         current_file="${line#"@@ file: "}"
         # Create file if it doesn't exist
+        mkdir -p "$(dirname "$current_file")"
         touch "$current_file"
         # Create temp file
         temp_file=$(mktemp)
@@ -19,8 +20,11 @@ while IFS= read -r line; do
     elif [[ $line == "-"* ]]; then
         # Remove line (skip it in temp file)
         old_line="${line#"-"}"
-        grep -v "^$old_line$" "$temp_file" > "$temp_file.new"
-        mv "$temp_file.new" "$temp_file"
+        # Escape special characters for sed
+        escaped_line=$(printf '%s\n' "$old_line" | sed 's:[][\/.^$*]:\\&:g')
+        if [ -n "$escaped_line" ]; then
+            sed -i "/$escaped_line/d" "$temp_file"
+        fi
     elif [[ $line == "+"* ]]; then
         # Add new line
         new_line="${line#"+"}"
