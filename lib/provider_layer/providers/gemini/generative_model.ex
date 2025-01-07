@@ -28,7 +28,7 @@ defmodule LangChain.Google.GenerativeModel do
   - `{:ok, response}`: Where `response` is a map containing the generated text or JSON.
   - `{:error, %LangChain.Error{}}`: If there was an error during the API request.
   """
-  def generate_content(prompt, opts \\ []) do
+  def generate_content(_prompt, _opts \\ []) do
     with {:ok, response} <- Client.generate_content(prompt, opts) do
         case Keyword.get(opts, :response_mime_type) do
           "application/json" ->
@@ -137,7 +137,7 @@ defmodule LangChain.Google.GenerativeModel do
   alias LangChain.Error
   alias LangChain.HTTP
 
-  def generate_content(prompt, opts \\ []) do
+  def generate_content(_prompt, _opts \\ []) do
     # ... build request body as before, potentially refactored ...
 
     with {:ok, %HTTPoison.Response{status_code: status_code, body: body}} <-

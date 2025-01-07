@@ -10,6 +10,6 @@ end
 defmodule LangChain.Config do
   def load do
     Application.load(:langchain)
-    config = Application.get_env(:langchain, :persistence)
+        _config = Application.get_env(:langchain, :persistence)
   end
 end

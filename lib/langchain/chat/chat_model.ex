@@ -4,7 +4,6 @@ defmodule LangChain.ChatModels.ChatModel do
   @moduledoc """
   Defines the core behavior for chat models.
   """
-  alias LangChain.Middleware.MiddlewareBehavior
 
   @callback generate_content(model :: String.t(), messages :: list(), opts :: keyword()) ::
               {:ok, map()} | {:error, term()}

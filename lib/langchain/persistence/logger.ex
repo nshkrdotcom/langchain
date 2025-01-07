@@ -22,7 +22,7 @@ defmodule LangChain.Persistence.Logger do
   end
 
   @impl true
-  def handle_cast({:log_interaction, pid, provider, model, request_data, response_data, error_data, opts}, state) do
+  def handle_cast({:log_interaction, _pid, provider, model, request_data, response_data, error_data, opts}, state) do
       backend_module = Config.get_persistence_backend()
 
       case apply(backend_module, :store_interaction, [

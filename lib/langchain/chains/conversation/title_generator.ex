@@ -9,7 +9,7 @@ defmodule LangChain.Chains.Conversation.TitleGenerator do
     {:ok, struct(__MODULE__, opts)}
   end
 
-  def run(chain, conversation) do
+  def run(chain, _conversation) do
     {:ok, chain, %{title: "Generated title"}}
   end
 end
