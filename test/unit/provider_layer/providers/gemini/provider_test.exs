@@ -20,7 +20,17 @@ defmodule LangChain.Test.Unit.Providers.Gemini.ProviderTest do
 
   @tag :live_call
     test "generates complex response with specific format" do
-      prompt = "List 3 programming languages and their main uses in JSON format"
+      prompt = """
+      Return exactly this JSON format with no other text:
+      {
+        "languages": [
+          {"name": "Python", "main_use": "Data Science"},
+          {"name": "JavaScript", "main_use": "Web Development"},
+          {"name": "Java", "main_use": "Enterprise Applications"}
+        ]
+      }
+      """
+
       {:ok, response} = Provider.generate_content(prompt)
       assert is_binary(response)
       assert String.contains?(response, "{")
