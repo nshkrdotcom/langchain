@@ -1,11 +1,9 @@
 defmodule LangChain.Middleware.Error do
-  @behaviour LangChain.Middleware.Behavior
+  @behaviour LangChain.Middleware.Behaviour
   
-  def handle(context, next) do
-    try do
-      next.(context)
-    rescue
-      e -> {:error, e}
-    end
-  end
+  @impl LangChain.Middleware.Behaviour
+  def handle_request(request, _opts), do: {:ok, request}
+  
+  @impl LangChain.Middleware.Behaviour
+  def handle_response(response, _opts), do: {:ok, response}
 end

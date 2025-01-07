@@ -11,12 +11,9 @@ defmodule LangChain.Google.GenerativeModel do
       LangChain.Middleware.PersistenceMiddleware
     ]
 
-  # Function header with default value
   @spec generate_content(String.t(), keyword()) :: {:ok, map()} | {:error, term()}
   def generate_content(prompt, opts \\ [])
-
-  # Actual implementation
-  def generate_content(prompt, opts) do
+  def generate_content(prompt, opts) when is_binary(prompt) do
     with {:ok, response} <- Client.generate_content(prompt, opts) do
       case Keyword.get(opts, :response_mime_type) do
         "application/json" -> {:ok, response}
