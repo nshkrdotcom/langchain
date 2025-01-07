@@ -44,7 +44,9 @@ defmodule LangChain.Test.Unit.Providers.Gemini.ProviderTest do
             nil -> 
               text # Try parsing the whole response if no code block markers
             block -> 
-              String.trim(block)
+            block
+              |> String.replace(~r/^json\n/, "") # Remove "json" prefix if present
+              |> String.trim()
           end
       end
       
