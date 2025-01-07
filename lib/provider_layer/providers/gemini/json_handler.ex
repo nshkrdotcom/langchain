@@ -10,7 +10,7 @@ defmodule LangChain.Provider.Gemini.JsonHandler do
     |> String.trim()
   end
 
-  def decode_and_validate(text, schema \\ nil) do
+  def decode_and_validate(text, _schema \\ nil) do
     cleaned_text = clean_json_text(text)
     Logger.debug("Attempting to parse JSON response: #{inspect(cleaned_text)}")
 
