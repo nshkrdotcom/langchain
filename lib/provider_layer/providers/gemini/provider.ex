@@ -3,7 +3,13 @@ defmodule LangChain.Provider.Gemini do
 
   @spec generate_content(String.t(), keyword()) :: {:ok, String.t() | map()} | {:error, term()}
   def generate_content(prompt, opts \\ [])
-  def generate_content("", _opts), do: {:error, "Empty prompt"}
+  def generate_content("", opts) do
+    if Keyword.get(opts, :structured_output) do
+      {:ok, %{}}
+    else
+      {:error, "Empty prompt"}
+    end
+  end
   def generate_content(prompt, opts) when is_binary(prompt) do
     case GenerativeModel.generate_content(prompt, opts) do
       {:ok, %{"candidates" => [%{"content" => %{"parts" => [%{"text" => text}]}} | _]} = _response} ->
