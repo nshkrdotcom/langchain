@@ -2,15 +2,20 @@ defmodule LangChain.Provider.Gemini.Provider do
   require Logger
   alias LangChain.Google.GenerativeModel
 
-  def generate_content(prompt, opts \\ [])  
+  def generate_content(prompt, opts \\ [])
   def generate_content(prompt, _opts) when not is_binary(prompt), do: {:error, "Invalid prompt"}
-  def generate_content("", _opts), do: {:error, "Empty prompt"}
+  def generate_content("", opts) do
+    case Keyword.get(opts, :structured_output) do
+      nil -> {:error, "Empty prompt"}
+      _ -> {:ok, %{}}
+    end
+  end
   def generate_content(prompt, opts) when is_binary(prompt) do
     {final_prompt, config} = case Keyword.get(opts, :structured_output) do
       nil -> {prompt, [temperature: 0.1, candidate_count: 1]}
       _schema ->
         schema_str = case opts[:structured_output] do
-        %{type: :object, properties: props} -> 
+        %{type: :object, properties: props} ->
           Jason.encode!(%{type: "object", properties: props})
         _ ->
           """
@@ -46,18 +51,18 @@ defmodule LangChain.Provider.Gemini.Provider do
     end
 
     case GenerativeModel.generate_content(final_prompt, config) do
-      {:ok, response} -> 
+      {:ok, response} ->
         case get_in(response, ["candidates", Access.at(0), "content", "parts", Access.at(0), "text"]) do
-          nil -> 
+          nil ->
             Logger.error("Failed to extract text from response structure: #{inspect(response, pretty: true)}")
             {:error, "Invalid response format"}
-          text -> 
+          text ->
             case Keyword.get(opts, :structured_output) do
               nil -> {:ok, text}
               _schema -> Jason.decode(text)
             end
         end
-      error -> 
+      error ->
         Logger.error("Gemini API error: #{inspect(error, pretty: true)}")
         error
     end
