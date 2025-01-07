@@ -1,4 +1,3 @@
-
 defmodule LangChain.Test.Unit.Providers.Gemini.ProviderTest do
   use LangChain.BaseTestCase
   alias LangChain.Provider.Gemini
@@ -40,15 +39,10 @@ defmodule LangChain.Test.Unit.Providers.Gemini.ProviderTest do
           flunk("Received nil response from provider")
         text when is_binary(text) ->
           text
-          |> String.split("```")
-          |> Enum.at(1)
+          |> Jason.decode()
           |> case do
-            nil ->
-              text # Try parsing the whole response if no code block markers
-            block ->
-            block
-              |> String.replace(~r/^json\n/, "") # Remove "json" prefix if present
-              |> String.trim()
+            {:ok, json} -> Jason.encode(json)
+            {:error, reason} -> flunk("Failed to parse JSON: #{inspect(reason)}")
           end
       end
 
@@ -153,70 +147,70 @@ defmodule LangChain.Test.Unit.Providers.Gemini.ProviderTest do
   end
 
   describe "structured output handling" do
-      test "handles complex structured output" do
-        schema = %{
-          type: :object,
-          properties: %{
-            analysis: %{
-              type: :object,
-              required: true,
-              properties: %{
-                main_points: %{type: :array, items: %{type: :string}},
-                sentiment: %{type: :string, enum: ["positive", "neutral", "negative"]},
-                word_count: %{type: :number}
-              }
+    test "handles complex structured output" do
+      schema = %{
+        type: :object,
+        properties: %{
+          analysis: %{
+            type: :object,
+            required: true,
+            properties: %{
+              main_points: %{type: :array, items: %{type: :string}},
+              sentiment: %{type: :string, enum: ["positive", "neutral", "negative"]},
+              word_count: %{type: :number}
             }
           }
         }
+      }
 
-        {:ok, parsed_json} = Gemini.generate_content(
-          "Analyze this text: 'Elixir is a dynamic, functional language designed for building scalable and maintainable applications.'",
-          structured_output: schema
-        )
+      {:ok, parsed_json} = Gemini.generate_content(
+        "Analyze this text: 'Elixir is a dynamic, functional language designed for building scalable and maintainable applications.'",
+        structured_output: schema
+      )
 
-        assert Map.has_key?(parsed_json, "analysis")
-        assert is_list(parsed_json["analysis"]["main_points"])
-        assert parsed_json["analysis"]["sentiment"] in ["positive", "neutral", "negative"]
-        assert is_number(parsed_json["analysis"]["word_count"])
+      assert Map.has_key?(parsed_json, "analysis")
+      assert is_list(parsed_json["analysis"]["main_points"])
+      assert parsed_json["analysis"]["sentiment"] in ["positive", "neutral", "negative"]
+      assert is_number(parsed_json["analysis"]["word_count"])
 
-        Logger.info("✅ Generated valid structured analysis: #{inspect(parsed_json, pretty: true)}")
-      end
-
-      test "handles empty structured responses" do
-        {:ok, parsed_json} = Gemini.generate_content(
-          "",
-          structured_output: %{type: :object, properties: %{}}
-        )
-
-        assert map_size(parsed_json) == 0
-      end
-
-      test "handles invalid JSON gracefully" do
-        result = Gemini.generate_content(
-          "Generate invalid JSON",
-          structured_output: %{type: :object, properties: %{}}
-        )
-
-        assert match?({:error, _}, result)
-      end
-
-      test "validates schema compliance" do
-        schema = %{
-          type: :object,
-          properties: %{
-            count: %{type: :number},
-            items: %{type: :array, items: %{type: :string}}
-          }
-        }
-
-        {:ok, parsed_json} = Gemini.generate_content(
-          "Generate a list of 3 fruits",
-          structured_output: schema
-        )
-
-        assert is_number(parsed_json["count"])
-        assert is_list(parsed_json["items"])
-        assert Enum.all?(parsed_json["items"], &is_binary/1)
-      end
+      Logger.info("✅ Generated valid structured analysis: #{inspect(parsed_json, pretty: true)}")
     end
+
+    test "handles empty structured responses" do
+      {:ok, parsed_json} = Gemini.generate_content(
+        "",
+        structured_output: %{type: :object, properties: %{}}
+      )
+
+      assert map_size(parsed_json) == 0
+    end
+
+    test "handles invalid JSON gracefully" do
+      result = Gemini.generate_content(
+        "Generate invalid JSON",
+        structured_output: %{type: :object, properties: %{}}
+      )
+
+      assert match?({:error, _}, result)
+    end
+
+    test "validates schema compliance" do
+      schema = %{
+        type: :object,
+        properties: %{
+          count: %{type: :number},
+          items: %{type: :array, items: %{type: :string}}
+        }
+      }
+
+      {:ok, parsed_json} = Gemini.generate_content(
+        "Generate a list of 3 fruits",
+        structured_output: schema
+      )
+
+      assert is_number(parsed_json["count"])
+      assert is_list(parsed_json["items"])
+      assert Enum.all?(parsed_json["items"], &is_binary/1)
+    end
+  end
 end
