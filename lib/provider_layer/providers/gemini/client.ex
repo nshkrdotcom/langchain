@@ -1,4 +1,4 @@
-defmodule LangChain.Gemini.Client do
+defmodule LangChain.Provider.Gemini.Client do
   require Logger
 
   @gemini_api_url "https://generativelanguage.googleapis.com/v1"
@@ -12,7 +12,7 @@ defmodule LangChain.Gemini.Client do
     make_request("streamGenerateContent", request, stream: true)
   end
 
-  defp make_request(endpoint, request, opts \\ []) do
+  defp make_request(endpoint, request, _opts \\ []) do
     url = "#{@gemini_api_url}/#{@model}:#{endpoint}"
     headers = build_headers()
 

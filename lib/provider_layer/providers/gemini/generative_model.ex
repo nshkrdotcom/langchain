@@ -1,19 +1,20 @@
+
 defmodule LangChain.Provider.Gemini.GenerativeModel do
   alias LangChain.Provider.Gemini.Client
 
-  @spec generate_content(String.t(), keyword()) :: {:ok, map()} | {:error, term()}
-  def generate_content(prompt, opts \\ []) when is_binary(prompt) do
+  @spec generate_content(String.t(), keyword()) :: {:ok, map()} | {:error, String.t()}
+  def generate_content(prompt, opts \\ [])
+  def generate_content(prompt, opts) when is_binary(prompt) do
     request = build_request(prompt, opts)
     Client.generate_content(request)
   end
+  def generate_content(_prompt, _opts), do: {:error, "Invalid prompt"}
 
-  @spec stream_generate_content(String.t(), keyword()) :: {:ok, map()} | {:error, term()}
+  @spec stream_generate_content(String.t(), keyword()) :: {:ok, map()} | {:error, String.t()}
   def stream_generate_content(prompt, opts \\ []) when is_binary(prompt) do
     request = build_request(prompt, opts)
     Client.stream_generate_content(request)
   end
-
-  def generate_content(prompt, _opts) when not is_binary(prompt), do: {:error, "Invalid prompt"}
 
   defp build_request(prompt, opts) do
     base_request = %{
@@ -24,10 +25,11 @@ defmodule LangChain.Provider.Gemini.GenerativeModel do
       [] -> {nil, %{}}
       opts ->
         tools = Keyword.get(opts, :tools)
-        config = Keyword.get(opts, :temperature) && %{
-          "temperature" => Keyword.get(opts, :temperature, 0.1),
-          "candidateCount" => Keyword.get(opts, :candidate_count, 1)
-        } || %{}
+        config = if temp = Keyword.get(opts, :temperature) do
+          %{"temperature" => temp}
+        else
+          %{}
+        end
         {tools, config}
     end
 
