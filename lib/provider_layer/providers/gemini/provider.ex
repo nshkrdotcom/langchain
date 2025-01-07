@@ -3,25 +3,24 @@ defmodule LangChain.Provider.Gemini.Provider do
   alias LangChain.Google.GenerativeModel
 
   def generate_content(prompt, opts \\ []) do
-    generation_config = case Keyword.get(opts, :structured_output) do
+    request_config = case Keyword.get(opts, :structured_output) do
       nil -> []
-      schema -> [
-        generationConfig: %{
-          temperature: 0.1,
-          candidate_count: 1
-        },
-        tools: [%{
-          functionDeclarations: [%{
-            name: "process_structured_output",
-            description: "Process structured output according to schema",
-            parameters: %{
-              type: "object",
-              properties: convert_schema_format(schema)
-            }
+      schema -> 
+        [
+          tools: [%{
+            functionDeclarations: [%{
+              name: "process_structured_output",
+              description: "Process structured output according to schema",
+              parameters: convert_schema_format(schema)
+            }]
           }]
-        }]
-      ]
+        ]
     end
+
+    generation_config = [
+      temperature: 0.1,
+      candidate_count: 1
+    ]
 
     case GenerativeModel.generate_content(prompt, generation_config) do
       {:ok, response} -> 
