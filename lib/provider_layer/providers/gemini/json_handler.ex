@@ -14,12 +14,12 @@ defmodule LangChain.Provider.Gemini.JsonHandler do
     case Jason.decode(clean_json_text(text)) do
       {:ok, decoded} when is_map(decoded) ->
         if validate_json_structure(decoded, schema) do
-          decoded
+          {:ok, decoded}
         else
           {:error, %{status: 400, body: "Invalid JSON structure"}}
         end
       _ ->
-        {:error, "Invalid JSON response"}
+        {:error, %{status: 400, body: "Invalid JSON response"}}
     end
   end
 

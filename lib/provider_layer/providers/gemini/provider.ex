@@ -62,7 +62,7 @@ defmodule LangChain.Provider.Gemini do
           schema ->
             case LangChain.Provider.Gemini.JsonHandler.decode_and_validate(text, schema) do
               {:error, reason} -> {:error, reason}
-              decoded -> {:ok, decoded}
+              decoded -> decoded
             end
         end
     end
