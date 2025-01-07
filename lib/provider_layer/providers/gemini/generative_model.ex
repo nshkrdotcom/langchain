@@ -12,7 +12,7 @@ defmodule LangChain.Google.GenerativeModel do
       LangChain.Middleware.PersistenceMiddleware
     ]
 
-  def generate_content(prompt, opts \\ [], context \\ nil) do
+  def generate_content(prompt, opts \\ [], _context \\ nil) do
     with {:ok, response} <- Client.generate_content(prompt, opts) do
       case Keyword.get(opts, :response_mime_type) do
         "application/json" -> {:ok, response}

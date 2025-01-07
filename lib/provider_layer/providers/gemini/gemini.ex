@@ -8,7 +8,7 @@ defmodule LangChain.Google do
     GenerativeModel.generate_content(prompt, opts)
   end
 
-  def stream_generate_content(prompt, opts) do
+  def stream_generate_content(_prompt, _opts) do
     # Delegate to LangChain.Google.GenerativeModel.stream_generate_content
   end
 
