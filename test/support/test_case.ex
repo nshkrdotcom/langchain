@@ -4,7 +4,6 @@ defmodule LangChain.TestCase do
   using do
     quote do
       use ExUnit.Case
-      import LangChain.TestCase
     end
   end
 end

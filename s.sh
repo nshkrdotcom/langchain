@@ -8,4 +8,4 @@ git commit --m 'fb'
 git push
 ssh replit_langchain 'bash -s' < f.sh
 rm r.sh
-nano r.sh
+#nano r.sh
