@@ -24,6 +24,7 @@ defmodule LangChain.Provider.Gemini.JsonHandler do
   end
 
   defp validate_json_structure(_decoded, nil), do: true
+  defp validate_json_structure(%{"type" => "object"}, _schema), do: false
   defp validate_json_structure(decoded, _schema) when map_size(decoded) == 0, do: false
   defp validate_json_structure(decoded, _schema) when is_map(decoded), do: true
   defp validate_json_structure(_decoded, _schema), do: false

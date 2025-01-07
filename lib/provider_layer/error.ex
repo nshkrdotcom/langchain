@@ -45,4 +45,8 @@ defmodule LangChain.Provider.Error do
   def from_response({:error, reason}, provider) when is_binary(reason) do
     new(:api_error, reason, provider)
   end
+
+  def from_response(%{status: status, body: body}, provider) do
+    new(:api_error, "Provider request failed (#{status})", provider, %{body: body})
+  end
 end
