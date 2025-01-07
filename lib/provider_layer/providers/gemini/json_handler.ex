@@ -21,6 +21,7 @@ defmodule LangChain.Provider.Gemini.JsonHandler do
         if validate_json_structure(decoded) do
           {:ok, decoded}
         else
+          Logger.debug("Invalid structure detected: #{inspect(decoded)}")
           {:error, %{status: 400, body: "Invalid JSON structure"}}
         end
       _ ->
@@ -32,7 +33,7 @@ defmodule LangChain.Provider.Gemini.JsonHandler do
     false
   end
 
-  defp validate_json_structure(%{"type" => "object"}) do
+  defp validate_json_structure(%{"type" => "object", "properties" => _}) do
     false
   end
 
@@ -40,8 +41,12 @@ defmodule LangChain.Provider.Gemini.JsonHandler do
     false
   end
 
-  defp validate_json_structure(decoded) when is_map(decoded) do
+  defp validate_json_structure(%{"analysis" => analysis}) when is_map(analysis) do
     true
+  end
+
+  defp validate_json_structure(decoded) when is_map(decoded) do
+    Map.keys(decoded) |> length() > 0
   end
 
   defp validate_json_structure(_) do
