@@ -6,7 +6,10 @@ defmodule LangChain.Provider.Gemini do
   def generate_content(prompt, opts \\ []) do
     case make_request(prompt, opts) do
       {:ok, response} ->
-        {:ok, process_response(response, opts)}
+        case process_response(response, opts) do
+          {:error, reason} -> {:error, reason}
+          response -> {:ok, response}
+        end
       {:error, reason} ->
         {:error, Error.from_response(reason, :gemini)}
     end
