@@ -1,15 +1,5 @@
-# lib/langchain/provider.ex (Abstract behaviour)
-defmodule LangChain.Provider do
-  @moduledoc "Defines the common interface for all AI model providers"
-
-  @callback generate_content(prompt :: String.t(), opts :: keyword()) ::
-              {:ok, map()} | {:error, Exception.t()}
-
-  @callback stream_generate_content(prompt :: String.t(), opts :: keyword()) ::
-              {:ok, Enumerable.t()} | {:error, Exception.t()}
-
-  @callback embed_content(content :: String.t() | list(String.t()), opts :: keyword()) ::
-              {:ok, list(float())} | {:error, Exception.t()}
-
-  # ... other common functions ...
+defmodule LangChain.Provider.Behavior do
+  @callback generate_content(String.t(), keyword()) :: {:ok, map()} | {:error, term()}
+  @callback stream_content(String.t(), keyword()) :: {:ok, Enumerable.t()} | {:error, term()}
+  @callback generate_embeddings(String.t(), keyword()) :: {:ok, list(float())} | {:error, term()}
 end
