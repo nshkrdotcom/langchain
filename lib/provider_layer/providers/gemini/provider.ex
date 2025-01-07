@@ -66,6 +66,9 @@ defmodule LangChain.Provider.Gemini do
               {:error, reason} ->
                 Logger.debug("Error case hit with reason: #{inspect(reason)}")
                 {:error, reason}
+              {:ok, {:error, reason}} ->
+                Logger.debug("Nested error case hit with reason: #{inspect(reason)}")
+                {:error, reason}
               {:ok, decoded} ->
                 Logger.debug("Success case hit with decoded: #{inspect(decoded)}")
                 decoded
