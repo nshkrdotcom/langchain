@@ -5,12 +5,7 @@ defmodule LangChain.Google.Client do
   @model "models/gemini-pro"
 
   @spec generate_content(String.t()) :: {:ok, map()} | {:error, term()}
-  def generate_content(prompt) do
-    generate_content(prompt, [])
-  end
-
-  @spec generate_content(String.t(), keyword()) :: {:ok, map()} | {:error, term()}
-  def generate_content(prompt, _opts) do
+  def generate_content(request) when is_map(request) do
     api_key = Application.get_env(:langchain, :gemini_api_key)
     
     url = "#{@gemini_api_url}/#{@model}:generateContent"
@@ -18,18 +13,6 @@ defmodule LangChain.Google.Client do
       {"Content-Type", "application/json"},
       {"x-goog-api-key", api_key}
     ]
-    
-    body = %{
-      "contents" => [
-        %{
-          "parts" => [
-            %{
-              "text" => prompt
-            }
-          ]
-        }
-      ]
-    }
 
     case Req.post(url, json: body, headers: headers, receive_timeout: 30_000, pool_timeout: 30_000) do
       {:ok, %{status: 200, body: response}} ->
