@@ -73,7 +73,7 @@ defmodule LangChain.Test.Unit.Providers.Gemini.ProviderTest do
         assert map_size(lang) > 1, "Language should have additional attributes"
       end)      
 
-      Logger.info("✅ Generated valid JSON respons.") #e: #{json_str}")
+      Logger.info("✅ Generated valid JSON response.") #e: #{json_str}")
     end
 
     test "handles structured output with schema" do
