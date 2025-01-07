@@ -1,4 +1,3 @@
-
 defmodule LangChain.Test.Unit.Providers.Gemini.ProviderTest do
   use LangChain.BaseTestCase
   alias LangChain.Provider.Gemini.Provider
@@ -10,7 +9,7 @@ defmodule LangChain.Test.Unit.Providers.Gemini.ProviderTest do
       prompt = "What is the capital of France?"
       Logger.info("🔄 Testing with mock prompt: #{prompt}")
       
-      expected_response = GeminiFixtures.mock_text_response()
+      _expected_response = GeminiFixtures.mock_text_response()
       response = Provider.generate_content(prompt)
       
       assert match?({:ok, _}, response)
@@ -21,7 +20,7 @@ defmodule LangChain.Test.Unit.Providers.Gemini.ProviderTest do
       prompt = "Generate JSON about programming languages"
       Logger.info("🔄 Testing with mock JSON prompt: #{prompt}")
       
-      expected_response = GeminiFixtures.mock_json_response()
+      _expected_response = GeminiFixtures.mock_json_response()
       response = Provider.generate_content(prompt)
       
       assert match?({:ok, _}, response)
