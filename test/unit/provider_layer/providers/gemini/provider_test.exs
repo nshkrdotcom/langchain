@@ -46,7 +46,7 @@ defmodule LangChain.Test.Unit.Providers.Gemini.ProviderTest do
           text
           |> String.split("```")
           |> Enum.at(1, text)  # If no code block markers found, use whole text
-          |> String.replace(~r/^json\n/, "")
+          |> String.replace(~r/^json\n/i, "")
           |> String.trim()
       end
 
