@@ -1,15 +1,13 @@
-defmodule LangChain.Provider.Gemini do
-  @behaviour LangChain.Provider.Behavior
-  
-  def generate_content(_prompt, _opts \\ []) do
-    # Implementation
-  end
-  
-  def stream_content(_prompt, _opts \\ []) do
-    # Implementation
-  end
-  
-  def generate_embeddings(_text, _opts \\ []) do
-    # Implementation
+defmodule LangChain.ProviderLayer.Providers.Gemini.Provider do
+  @behaviour LangChain.ProviderLayer.Behaviors.Provider
+  alias LangChain.Google.GenerativeModel
+
+  @spec generate(String.t()) :: {:ok, String.t()} | {:error, term()}
+  def generate(nil), do: {:error, "Prompt cannot be nil"}
+  def generate(prompt) when is_binary(prompt) do
+    case GenerativeModel.generate_content(prompt) do
+      {:ok, response} -> {:ok, response.text}
+      error -> error
+    end
   end
 end

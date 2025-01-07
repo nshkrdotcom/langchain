@@ -13,6 +13,7 @@ defmodule LangChain.Google.GenerativeModel do
 
   @spec generate_content(String.t(), keyword()) :: {:ok, map()} | {:error, term()}
   def generate_content(prompt, opts \\ [])
+  def generate_content(prompt, _opts) when not is_binary(prompt), do: {:error, "Invalid prompt"}
   def generate_content(prompt, opts) when is_binary(prompt) do
     with {:ok, response} <- Client.generate_content(prompt, opts) do
       case Keyword.get(opts, :response_mime_type) do
