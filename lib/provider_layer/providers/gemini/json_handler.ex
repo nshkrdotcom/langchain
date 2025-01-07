@@ -11,9 +11,14 @@ defmodule LangChain.Provider.Gemini.JsonHandler do
   end
 
   def decode_and_validate(text, schema \\ nil) do
-    case Jason.decode(clean_json_text(text)) do
+    cleaned_text = clean_json_text(text)
+    Logger.debug("Attempting to parse JSON response: #{inspect(cleaned_text)}")
+
+    case Jason.decode(cleaned_text) do
       {:ok, decoded} when is_map(decoded) ->
-        if validate_json_structure(decoded, schema) do
+        Logger.debug("Parsed JSON: #{inspect(decoded)}")
+
+        if validate_json_structure(decoded) do
           {:ok, decoded}
         else
           {:error, %{status: 400, body: "Invalid JSON structure"}}
@@ -23,11 +28,25 @@ defmodule LangChain.Provider.Gemini.JsonHandler do
     end
   end
 
-  defp validate_json_structure(_decoded, nil), do: true
-  defp validate_json_structure(%{"type" => "object"}, _schema), do: false
-  defp validate_json_structure(decoded, _schema) when map_size(decoded) == 0, do: false
-  defp validate_json_structure(decoded, _schema) when is_map(decoded), do: true
-  defp validate_json_structure(_decoded, _schema), do: false
+  defp validate_json_structure(%{"" => ""}) do
+    false
+  end
+
+  defp validate_json_structure(%{"type" => "object"}) do
+    false
+  end
+
+  defp validate_json_structure(decoded) when map_size(decoded) == 0 do
+    false
+  end
+
+  defp validate_json_structure(decoded) when is_map(decoded) do
+    true
+  end
+
+  defp validate_json_structure(_) do
+    false
+  end
 
   def default_schema do
     """
