@@ -1,11 +1,3 @@
-
-#!/bin/bash
-
-# Backup the original file
-cp lib/provider_layer/providers/gemini/generative_model.ex lib/provider_layer/providers/gemini/generative_model.ex.bak
-
-# Replace the file with the fixed version
-cat > lib/provider_layer/providers/gemini/generative_model.ex << 'EOL'
 defmodule LangChain.Google.GenerativeModel do
   @moduledoc """
   Provides functions for interacting with Google's Gemini models.
@@ -13,14 +5,7 @@ defmodule LangChain.Google.GenerativeModel do
   alias LangChain.Google.Client
   alias LangChain.Error
 
-  use LangChain.ChatModels.ChatModel,
-    middleware: [
-      LangChain.Middleware.ErrorMiddleware,
-      LangChain.Middleware.LoggingMiddleware,
-      LangChain.Middleware.PersistenceMiddleware
-    ]
-
-  def generate_content(prompt, opts \\ [], context \\ nil) do
+  def generate_content(prompt, opts \\ []) do
     with {:ok, response} <- Client.generate_content(prompt, opts) do
       case Keyword.get(opts, :response_mime_type) do
         "application/json" -> {:ok, response}
@@ -29,7 +14,14 @@ defmodule LangChain.Google.GenerativeModel do
     end
   end
 
-  defp parse_response(body, status_code, _opts) do
+  use LangChain.ChatModels.ChatModel,
+    middleware: [
+      LangChain.Middleware.ErrorMiddleware,
+      LangChain.Middleware.LoggingMiddleware,
+      LangChain.Middleware.PersistenceMiddleware
+    ]
+
+  defp parse_response(body, status_code, opts) do
     case status_code do
       200 -> {:ok, body}
       400 -> {:error, Error.exception(:api_error, "Bad Request", Jason.decode!(body))}
@@ -72,4 +64,3 @@ defmodule LangChain.Google.GenerativeModel do
     end
   end
 end
-EOL

@@ -5,7 +5,14 @@ defmodule LangChain.Google.GenerativeModel do
   alias LangChain.Google.Client
   alias LangChain.Error
 
-  def generate_content(prompt, opts \\ []) do
+  use LangChain.ChatModels.ChatModel,
+    middleware: [
+      LangChain.Middleware.ErrorMiddleware,
+      LangChain.Middleware.LoggingMiddleware,
+      LangChain.Middleware.PersistenceMiddleware
+    ]
+
+  def generate_content(prompt, opts \\ [], context \\ nil) do
     with {:ok, response} <- Client.generate_content(prompt, opts) do
       case Keyword.get(opts, :response_mime_type) do
         "application/json" -> {:ok, response}
@@ -14,14 +21,7 @@ defmodule LangChain.Google.GenerativeModel do
     end
   end
 
-  use LangChain.ChatModels.ChatModel,
-    middleware: [
-      LangChain.Middleware.ErrorMiddleware,
-      LangChain.Middleware.LoggingMiddleware,
-      LangChain.Middleware.PersistenceMiddleware
-    ]
-
-  defp parse_response(body, status_code, opts) do
+  defp parse_response(body, status_code, _opts) do
     case status_code do
       200 -> {:ok, body}
       400 -> {:error, Error.exception(:api_error, "Bad Request", Jason.decode!(body))}
