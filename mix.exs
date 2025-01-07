@@ -7,7 +7,7 @@ defmodule LangChain.MixProject do
     [
       app: :langchain,
       version: @version,
-      elixir: "~> 1.14",
+      elixir: "~> 1.16",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -33,10 +33,11 @@ defmodule LangChain.MixProject do
 
   defp deps do
     [
-      {:ecto, "~> 3.10"},
-      {:jason, "~> 1.4"},
-      {:req, "~> 0.4.0"},
-      {:excoveralls, "~> 0.18", only: :test},
+      {:ecto, "~> 3.12.5"},
+      {:jason, "~> 1.4.4"},
+      {:req, "~> 0.5.8"},
+      {:ex_json_schema, "~> 0.10.2"},
+      {:excoveralls, "~> 0.18.3", only: :test},
       {:mock, "~> 0.3.0", only: :test}
     ]
   end
