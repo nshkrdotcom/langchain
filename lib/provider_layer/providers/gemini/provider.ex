@@ -6,8 +6,20 @@ defmodule LangChain.Provider.Gemini.Provider do
     generation_config = case Keyword.get(opts, :structured_output) do
       nil -> []
       schema -> [
-        response_mime_type: "application/json",
-        response_schema: convert_schema_format(schema)
+        generationConfig: %{
+          temperature: 0.1,
+          candidate_count: 1
+        },
+        tools: [%{
+          functionDeclarations: [%{
+            name: "process_structured_output",
+            description: "Process structured output according to schema",
+            parameters: %{
+              type: "object",
+              properties: convert_schema_format(schema)
+            }
+          }]
+        }]
       ]
     end
 
