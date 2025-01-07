@@ -1,34 +1,57 @@
 
 #!/bin/bash
 
-# Fix unused context variable in generative_model.ex
-sed -i 's/def generate_content(prompt, opts \\\\ \[\], context \\\\ nil) do/def generate_content(prompt, opts \\\\ \[\], _context \\\\ nil) do/' lib/provider_layer/providers/gemini/generative_model.ex
-
-# Fix unused variables in gemini.ex
-sed -i 's/def stream_generate_content(prompt, opts) do/def stream_generate_content(_prompt, _opts) do/' lib/provider_layer/providers/gemini/gemini.ex
-
-# Create error struct
-mkdir -p lib/langchain
-cat > lib/langchain/error.ex << 'EOL'
-defmodule LangChain.Error do
-  @moduledoc "Struct for handling LangChain errors"
-  defstruct [:type, :message, :details]
-  
-  def exception(type, message, details \\ %{}) do
-    %__MODULE__{
-      type: type,
-      message: message,
-      details: details
-    }
-  end
-end
-EOL
-
-# Create interaction struct
+# Update the Interaction struct to include provider field
 cat > lib/langchain/interaction.ex << 'EOL'
 defmodule LangChain.Interaction do
   @moduledoc "Schema for storing LLM interactions"
-  defstruct [:id, :prompt, :response, :model, :timestamp, :metadata]
+  defstruct [:id, :provider, :prompt, :response, :model, :timestamp, :metadata]
 end
 EOL
 
+# Update the Postgres adapter
+cat > lib/langchain/persistence/adapters/postgres.ex << 'EOL'
+defmodule LangChain.Persistence.Postgres do
+  @moduledoc """
+  PostgreSQL backend adapter for LangChain persistence.
+  """
+  use Ecto.Schema
+  import Ecto.Query, warn: false
+  alias LangChain.Config
+  alias LangChain.Persistence.Backend
+  alias LangChain.Repo
+
+  @behaviour Backend
+
+  @impl Backend
+  def setup() do
+    {:ok, _} = Ecto.Migrator.with_repo(Repo, &Ecto.Migrator.run(&1, :up, all: true))
+  end
+
+  @impl Backend
+  def store_interaction(provider, model, request_data, response_data, error_data, opts) do
+    interaction_data = %{
+      provider: provider,
+      model: model,
+      prompt: request_data["prompt"],
+      response: response_data,
+      metadata: %{
+        error: error_data,
+        request: request_data,
+        options: opts
+      },
+      timestamp: NaiveDateTime.utc_now()
+    }
+
+    with {:ok, interaction} <- create_interaction(interaction_data) do
+      {:ok, interaction}
+    end
+  end
+
+  defp create_interaction(attrs) do
+    %LangChain.Interaction{}
+    |> Map.merge(attrs)
+    |> Repo.insert()
+  end
+end
+EOL
