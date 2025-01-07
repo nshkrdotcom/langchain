@@ -1,4 +1,5 @@
 defmodule LangChain.Provider.Gemini.Provider do
+  require Logger
   alias LangChain.Google.GenerativeModel
 
   def generate_content(prompt, opts \\ []) do
