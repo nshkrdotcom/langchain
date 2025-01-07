@@ -35,6 +35,8 @@ defmodule LangChain.MixProject do
 
   # Run "mix help deps" to learn about dependencies.
   defp deps do
+      {:httpoison, "~> 2.0"},
+      {:ecto, "~> 3.10"},
     [
       {:ecto, "~> 3.10 or ~> 3.11"},
       {:gettext, "~> 0.20"},

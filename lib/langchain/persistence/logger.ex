@@ -1,3 +1,4 @@
+require Logger
 defmodule LangChain.Persistence.Logger do
   @moduledoc """
   Asynchronously logs API interactions to the configured persistence backend.

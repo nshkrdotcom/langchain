@@ -6,7 +6,7 @@ defmodule LangChain.Test.Unit.Providers.Gemini.ProviderTest do
 
   describe "basic generation" do
     @tag :live_call
-    test "generates a simple response", %{test_start_time: start_time} do
+    test "generates a simple response", %{test_start_time: _start_time} do
       prompt = "Say hello world"
       {:ok, response} = LangChain.Provider.Gemini.generate_content(prompt)
       

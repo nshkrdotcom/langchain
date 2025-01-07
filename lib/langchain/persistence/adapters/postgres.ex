@@ -4,7 +4,6 @@ defmodule LangChain.Persistence.Postgres do
   """
   use Ecto.Schema
   import Ecto.Query, warn: false
-  alias LangChain.Config
   alias LangChain.Persistence.Backend
   alias LangChain.Repo
 

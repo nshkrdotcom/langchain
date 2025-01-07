@@ -1,3 +1,4 @@
+require Logger
 defmodule LangChain.Middleware.Logging do
   @moduledoc """
   Logs API requests and responses.
