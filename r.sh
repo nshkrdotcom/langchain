@@ -1,3 +1,8 @@
+
+#!/bin/bash
+
+# Update the Gemini Provider to include the generate/1 function
+cat > lib/provider_layer/providers/gemini/provider.ex << 'EOL'
 defmodule LangChain.ProviderLayer.Providers.Gemini.Provider do
   @behaviour LangChain.Provider
   alias LangChain.Google.GenerativeModel
@@ -18,3 +23,5 @@ defmodule LangChain.ProviderLayer.Providers.Gemini.Provider do
     generate_content(prompt)
   end
 end
+EOL
+
