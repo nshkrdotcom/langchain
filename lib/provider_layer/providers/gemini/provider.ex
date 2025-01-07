@@ -59,15 +59,23 @@ defmodule LangChain.Provider.Gemini.Provider do
           text ->
             case Keyword.get(opts, :structured_output) do
               nil -> {:ok, text}
-              _schema ->
-                # First validate if the response looks like JSON
-                if String.trim(text) =~ ~r/^[{\[].*[}\]]$/ do
-                  case Jason.decode(text) do
-                    {:ok, decoded} when is_map(decoded) -> {:ok, decoded}
-                    _ -> {:error, "Invalid JSON response"}
-                  end
-                else
-                  {:error, "Invalid JSON response"}
+              schema ->
+                # First validate if the response looks like valid JSON structure
+                cond do
+                  # Check for obviously malformed JSON
+                  not String.trim(text) =~ ~r/^[{\[].*[}\]]$/ ->
+                    {:error, "Invalid JSON response: Malformed structure"}
+
+                  # Attempt to parse and validate
+                  true ->
+                    case Jason.decode(text) do
+                      {:ok, decoded} when is_map(decoded) and map_size(decoded) > 0 ->
+                        {:ok, decoded}
+                      {:ok, _} ->
+                        {:error, "Invalid JSON response: Empty or invalid structure"}
+                      {:error, _} ->
+                        {:error, "Invalid JSON response: Parse error"}
+                    end
                 end
             end
         end
