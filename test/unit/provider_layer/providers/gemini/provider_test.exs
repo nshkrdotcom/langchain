@@ -76,6 +76,46 @@ defmodule LangChain.Test.Unit.Providers.Gemini.ProviderTest do
       Logger.info("✅ Generated valid JSON respons.") #e: #{json_str}")
     end
 
+    test "handles structured output with schema" do
+      schema = %{
+        type: :object,
+        properties: %{
+          languages: %{
+            type: :array,
+            items: %{
+              type: :object,
+              properties: %{
+                name: %{type: :string},
+                paradigm: %{type: :string},
+                year_created: %{type: :number}
+              }
+            }
+          }
+        }
+      }
+
+      {:ok, parsed_json} = Provider.generate_content("List 3 programming languages", structured_output: schema)
+      
+      # Validate response structure
+      assert is_map(parsed_json)
+      assert Map.has_key?(parsed_json, "languages")
+      
+      languages = parsed_json["languages"]
+      assert is_list(languages)
+      assert length(languages) == 3
+      
+      # Validate each language entry
+      Enum.each(languages, fn lang ->
+        assert is_map(lang)
+        assert is_binary(lang["name"])
+        assert is_binary(lang["paradigm"])
+        assert is_number(lang["year_created"])
+      end)
+
+      Logger.info("✅ Generated valid structured output")
+    end
+
+
     @tag :live_call
     test "successfully makes live API calls with proper response handling" do
       prompt = "What is quantum computing? Keep it brief."
