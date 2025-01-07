@@ -59,9 +59,16 @@ defmodule LangChain.Provider.Gemini do
         case Keyword.get(opts, :structured_output) do
           nil -> text
           schema ->
-            case LangChain.Provider.Gemini.JsonHandler.decode_and_validate(text, schema) do
-              {:error, reason} -> {:error, reason}
-              {:ok, decoded} -> decoded
+            Logger.debug("Processing text: #{inspect(text)}")
+            result = LangChain.Provider.Gemini.JsonHandler.decode_and_validate(text, schema)
+            Logger.debug("JsonHandler result: #{inspect(result)}")
+            case result do
+              {:error, reason} ->
+                Logger.debug("Error case hit with reason: #{inspect(reason)}")
+                {:error, reason}
+              {:ok, decoded} ->
+                Logger.debug("Success case hit with decoded: #{inspect(decoded)}")
+                decoded
             end
         end
     end
