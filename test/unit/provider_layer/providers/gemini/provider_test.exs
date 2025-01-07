@@ -3,12 +3,12 @@ defmodule LangChain.Test.Unit.Providers.Gemini.ProviderTest do
   alias LangChain.Provider.Gemini.Provider
   alias LangChain.Test.Fixtures.Providers.GeminiFixtures
   require Logger
-  import Access
+  #import Access
 
   describe "basic generation with mocks" do
     test "generates a simple response" do
       prompt = "What is the capital of France?"
-      Logger.info("🔄 Testing with mock prompt: #{prompt}")
+      Logger.info("🔄 Testing mock response for prompt: #{prompt}")
 
       expected = GeminiFixtures.mock_text_response()
       response = Provider.generate_content(prompt)
@@ -19,7 +19,7 @@ defmodule LangChain.Test.Unit.Providers.Gemini.ProviderTest do
 
     test "generates structured JSON response" do
       prompt = "Generate JSON about programming languages"
-      Logger.info("🔄 Testing with mock JSON prompt: #{prompt}")
+      Logger.info("🔄 Testing mock response for JSON prompt: #{prompt}")
 
       expected = GeminiFixtures.mock_json_response()
       response = Provider.generate_content(prompt)
@@ -35,10 +35,10 @@ defmodule LangChain.Test.Unit.Providers.Gemini.ProviderTest do
     @tag :live_call
     test "generates a simple response" do
       prompt = "What is the capital of France?"
-      Logger.info("🔄 Sending prompt to Gemini API: #{prompt}")
+      Logger.info("🔄 Testing live Gemini API with prompt: #{prompt} (stubbed)")
 
       {:ok, response} = Provider.generate_content(prompt)
-      Logger.info("✅ Received response from Gemini API: #{response}")
+      Logger.info("✅ Received mock response: #{response}")
 
       assert is_binary(response)
       assert String.contains?(response, "Paris")
