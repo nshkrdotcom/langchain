@@ -1,82 +1,37 @@
-defmodule LangChain.Provider.Gemini do
-  alias LangChain.Provider.Error
+defmodule LangChain.Google.Client do
   require Logger
-  alias LangChain.Google.GenerativeModel
 
-  def generate_content(prompt, opts \\ []) do
-    case make_request(prompt, opts) do
-      {:ok, response} ->
-        case process_response(response, opts) do
-          {:error, reason} -> {:error, reason}
-          response -> {:ok, response}
-        end
-      {:error, reason} ->
-        {:error, Error.from_response(reason, :gemini)}
+  @gemini_api_url "https://generativelanguage.googleapis.com/v1"
+  @model "models/gemini-pro"
+
+  def generate_content(request) do
+    make_request("generateContent", request)
+  end
+
+  def stream_generate_content(request) do
+    make_request("streamGenerateContent", request, stream: true)
+  end
+
+  defp make_request(endpoint, request, opts \\ []) do
+    url = "#{@gemini_api_url}/#{@model}:#{endpoint}"
+    headers = build_headers()
+
+    case Req.post(url, json: request, headers: headers, receive_timeout: 30_000) do
+      {:ok, %{status: 200, body: response}} -> {:ok, response}
+      {:ok, %{status: status, body: error}} ->
+        Logger.error("Gemini API error: #{status} - #{inspect(error)}")
+        {:error, error}
+      {:error, error} ->
+        Logger.error("Request failed: #{inspect(error)}")
+        {:error, error}
     end
   end
 
-  defp make_request(prompt, _opts) when not is_binary(prompt), do: {:error, "Invalid prompt"}
-  defp make_request("", opts) do
-    case Keyword.get(opts, :structured_output) do
-      nil -> {:error, %{status: 400, body: "Empty prompt"}}
-      _ -> {:ok, %{}}
-    end
-  end
-  defp make_request(prompt, opts) when is_binary(prompt) do
-    {final_prompt, config} = case Keyword.get(opts, :structured_output) do
-      nil -> {prompt, [temperature: 0.1, candidate_count: 1]}
-      schema ->
-        schema_str = case schema do
-          %{type: :object, properties: props} ->
-            Jason.encode!(%{type: "object", properties: props})
-          _ -> LangChain.Provider.Gemini.JsonHandler.default_schema()
-        end
-        {
-          """
-          Return a JSON response matching this schema: #{schema_str}
-
-          Important: Your response must be valid JSON only, no other text.
-          Do not include markdown formatting or code blocks.
-
-          Prompt: #{prompt}
-          """,
-          [temperature: 0.1, candidate_count: 1]
-        }
-    end
-
-    GenerativeModel.generate_content(final_prompt, config)
-  end
-
-  defp process_response(%{} = response, opts) when map_size(response) == 0 do
-    case Keyword.get(opts, :structured_output) do
-      nil -> {:error, "Empty response"}
-      _ -> %{}
-    end
-  end
-  defp process_response(response, opts) do
-    case get_in(response, ["candidates", Access.at(0), "content", "parts", Access.at(0), "text"]) do
-      nil ->
-        Logger.error("Failed to extract text from response structure: #{inspect(response, pretty: true)}")
-        {:error, "Invalid response format"}
-      text ->
-        case Keyword.get(opts, :structured_output) do
-          nil -> text
-          schema ->
-            Logger.debug("Processing text: #{inspect(text)}")
-            result = LangChain.Provider.Gemini.JsonHandler.decode_and_validate(text, schema)
-            Logger.debug("JsonHandler result: #{inspect(result)}")
-            case result do
-              {:error, reason} ->
-                Logger.debug("Error case hit with reason: #{inspect(reason)}")
-                {:error, reason}
-              {:ok, {:error, reason}} ->
-                Logger.debug("Nested error case hit with reason: #{inspect(reason)}")
-                {:error, reason}
-              {:ok, decoded} ->
-                Logger.debug("Success case hit with decoded: #{inspect(decoded)}")
-                decoded
-            end
-        end
-    end
+  defp build_headers do
+    api_key = Application.get_env(:langchain, :gemini_api_key)
+    [
+      {"Content-Type", "application/json"},
+      {"x-goog-api-key", api_key}
+    ]
   end
 end
