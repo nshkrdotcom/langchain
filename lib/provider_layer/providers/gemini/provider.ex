@@ -18,12 +18,11 @@ defmodule LangChain.Provider.Gemini.Provider do
         ]
     end
 
-    generation_config = case Keyword.get(opts, :structured_output) do
-      nil -> [temperature: 0.1, candidate_count: 1]
+    {final_prompt, config} = case Keyword.get(opts, :structured_output) do
+      nil -> {prompt, [temperature: 0.1, candidate_count: 1]}
       schema ->
         schema_json = Jason.encode!(convert_schema_format(schema))
         {
-          [temperature: 0.1, candidate_count: 1],
           """
           Return a JSON response matching this schema: #{schema_json}
 
@@ -31,11 +30,12 @@ defmodule LangChain.Provider.Gemini.Provider do
           Do not include markdown formatting or code blocks.
 
           Prompt: #{prompt}
-          """
+          """,
+          [temperature: 0.1, candidate_count: 1]
         }
     end
 
-    case GenerativeModel.generate_content(prompt, generation_config) do
+    case GenerativeModel.generate_content(final_prompt, config) do
       {:ok, response} -> 
         #Logger.debug("Received Gemini response: #{inspect(response, pretty: true)}")
         case get_in(response, ["candidates", Access.at(0), "content", "parts", Access.at(0), "text"]) do
@@ -73,3 +73,4 @@ defmodule LangChain.Provider.Gemini.Provider do
   end
   defp convert_properties(_), do: %{}
 end
+
