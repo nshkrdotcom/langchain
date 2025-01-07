@@ -20,15 +20,4 @@ defmodule LangChain.Google.GenerativeModel do
       end
     end
   end
-
-  end
-
-
-
-    else
-      context
-    end
-  end
-
-  end
 end
