@@ -46,7 +46,11 @@ defmodule LangChain.Provider.Gemini.JsonHandler do
   end
 
   defp validate_json_structure(decoded) when is_map(decoded) do
-    Map.keys(decoded) |> length() > 0
+    Logger.debug("Validating map structure: #{inspect(decoded)}")
+    Logger.debug("Number of keys: #{length(Map.keys(decoded))}")
+    has_keys = Map.keys(decoded) |> length() > 0
+    Logger.debug("Has keys validation result: #{has_keys}")
+    has_keys
   end
 
   defp validate_json_structure(_) do
