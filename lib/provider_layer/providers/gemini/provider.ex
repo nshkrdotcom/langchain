@@ -44,7 +44,6 @@ defmodule LangChain.Provider.Gemini do
     GenerativeModel.generate_content(final_prompt, config)
   end
 
-
   defp process_response(%{} = response, opts) when map_size(response) == 0 do
     case Keyword.get(opts, :structured_output) do
       nil -> {:error, "Empty response"}
@@ -62,6 +61,7 @@ defmodule LangChain.Provider.Gemini do
           schema ->
             case LangChain.Provider.Gemini.JsonHandler.decode_and_validate(text, schema) do
               {:error, reason} -> {:error, reason}
+              {:ok, {:error, reason}} -> {:error, reason}
               {:ok, decoded} -> decoded
             end
         end
