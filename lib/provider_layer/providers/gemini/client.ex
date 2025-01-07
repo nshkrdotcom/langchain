@@ -14,7 +14,7 @@ defmodule LangChain.Google.Client do
       {"x-goog-api-key", api_key}
     ]
 
-    case Req.post(url, json: body, headers: headers, receive_timeout: 30_000, pool_timeout: 30_000) do
+    case Req.post(url, json: request, headers: headers, receive_timeout: 30_000, pool_timeout: 30_000) do
       {:ok, %{status: 200, body: response}} ->
         {:ok, response}
       {:ok, %{status: status, body: error}} ->
