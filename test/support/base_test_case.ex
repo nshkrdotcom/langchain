@@ -1,4 +1,4 @@
-defmodule LangChain.TestCase do
+defmodule LangChain.BaseTestCase do
   use ExUnit.CaseTemplate
 
   using do

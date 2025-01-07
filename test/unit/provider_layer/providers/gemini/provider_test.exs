@@ -1,5 +1,5 @@
 defmodule LangChain.Test.Unit.Providers.Gemini.ProviderTest do
-  use LangChain.TestCase
+  use LangChain.BaseTestCase
   alias LangChain.ProviderLayer.Providers.Gemini.Provider
 
   describe "basic generation" do

@@ -1,5 +1,5 @@
 defmodule LangChain.Test.Unit.Chains.Conversation.TitleGeneratorTest do
-  use LangChain.TestCase
+  use LangChain.BaseTestCase
 
   alias LangChain.Chains.Conversation.TitleGenerator
 

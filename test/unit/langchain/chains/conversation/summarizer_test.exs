@@ -1,5 +1,5 @@
 defmodule LangChain.Test.Unit.Chains.Conversation.SummarizerTest do
-  use LangChain.TestCase
+  use LangChain.BaseTestCase
 
   alias LangChain.Chains.Conversation.Summarizer
 

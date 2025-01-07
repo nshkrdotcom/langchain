@@ -1,5 +1,5 @@
 defmodule LangChain.Integration.Capabilities.ChatFlowTest do
-  use LangChain.TestCase
+  use LangChain.BaseTestCase
 
   @moduletag :integration
 

@@ -1,5 +1,5 @@
 defmodule LangChain.Test.Unit.Chains.Routing.RouterChainTest do
-  use LangChain.TestCase
+  use LangChain.BaseTestCase
 
   alias LangChain.Chains.Routing.RouterChain
 

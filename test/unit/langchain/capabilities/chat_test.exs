@@ -1,5 +1,5 @@
 defmodule LangChain.Capabilities.ChatTest do
-  use LangChain.TestCase
+  use LangChain.BaseTestCase
 
   alias LangChain.Capabilities.Chat
 

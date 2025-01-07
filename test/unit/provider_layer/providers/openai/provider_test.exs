@@ -1,5 +1,5 @@
 defmodule LangChain.Provider.OpenAITest do
-  use LangChain.TestCase
+  use LangChain.BaseTestCase
 
   alias LangChain.Provider.OpenAI
   alias LangChain.Test.Fixtures.ChatResponses

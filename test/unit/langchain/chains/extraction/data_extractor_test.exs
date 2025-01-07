@@ -1,5 +1,5 @@
 defmodule LangChain.Test.Unit.Chains.Extraction.DataExtractorTest do
-  use LangChain.TestCase
+  use LangChain.BaseTestCase
 
   alias LangChain.Chains.Extraction.DataExtractor
 

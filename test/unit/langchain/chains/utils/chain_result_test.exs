@@ -1,5 +1,5 @@
 defmodule LangChain.Test.Unit.Chains.Utils.ChainResultTest do
-  use LangChain.TestCase
+  use LangChain.BaseTestCase
 
   alias LangChain.Chains.Utils.ChainResult
 
