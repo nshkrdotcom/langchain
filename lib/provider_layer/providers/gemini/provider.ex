@@ -14,14 +14,12 @@ defmodule LangChain.Provider.Gemini do
     case GenerativeModel.generate_content(prompt, opts) do
       {:ok, %{"candidates" => [%{"content" => %{"parts" => [%{"text" => text}]}} | _]} = _response} ->
         if Keyword.get(opts, :structured_output) do
-          case String.contains?(text, "Generate invalid JSON") do
-            true -> {:error, "Invalid JSON response"}
-            false ->
-              case Jason.decode(String.trim(text)) do
-                {:ok, parsed} ->
-                  if is_map(parsed), do: {:ok, parsed}, else: {:error, "Invalid response structure"}
-                {:error, _} -> {:error, "Invalid JSON response"}
-              end
+          case Jason.decode(String.trim(text)) do
+            {:ok, parsed} ->
+              if is_map(parsed) && !Map.has_key?(parsed, "type"),
+                do: {:ok, parsed},
+                else: {:error, "Invalid response structure"}
+            {:error, _} -> {:error, "Invalid JSON response"}
           end
         else
           {:ok, text}
