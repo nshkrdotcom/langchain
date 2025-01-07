@@ -1,5 +1,4 @@
 defmodule LangChain.Provider.Gemini do
-  alias LangChain.Provider.Gemini.Client # Assuming this module will be created separately to wrap LangChain.Google.Client
   alias LangChain.Provider.Gemini.GenerativeModel
 
   @spec generate_content(String.t(), keyword()) :: {:ok, map()} | {:error, term()}
