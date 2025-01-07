@@ -35,6 +35,15 @@ defmodule LangChain.Error do
     if source, do: "#{base} (from #{source})", else: base
   end
 
+  def wrap_provider_error(%LangChain.Provider.Error{} = error, provider) do
+    new(
+      map_provider_error_type(error.type),
+      error.message,
+      Map.merge(%{original: error}, error.details),
+      provider
+    )
+  end
+
   def wrap_provider_error(error, provider) do
     new(:provider_error, Exception.message(error), %{original: error}, provider)
   end
@@ -46,4 +55,13 @@ defmodule LangChain.Error do
   def wrap_rate_limit_error(provider, details \\ %{}) do
     new(:rate_limit_error, "Rate limit exceeded", details, provider)
   end
+
+  defp map_provider_error_type(:api_error), do: :provider_error
+  defp map_provider_error_type(:rate_limit), do: :rate_limit_error
+  defp map_provider_error_type(:auth_error), do: :authentication_error
+  defp map_provider_error_type(:validation_error), do: :validation_error
+  defp map_provider_error_type(:network_error), do: :network_error
+  defp map_provider_error_type(:parsing_error), do: :parsing_error
+  defp map_provider_error_type(:timeout_error), do: :network_error
+  defp map_provider_error_type(_), do: :unknown_error
 end

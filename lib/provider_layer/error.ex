@@ -1,7 +1,6 @@
-
 defmodule LangChain.Provider.Error do
   @moduledoc """
-  Error handling specific to provider layer operations.
+  Standardized error handling for provider layer operations.
   """
 
   defexception [:type, :message, :details, :provider]
@@ -13,6 +12,7 @@ defmodule LangChain.Provider.Error do
     :validation_error |
     :network_error |
     :parsing_error |
+    :timeout_error |
     :unknown_error
 
   @type t :: %__MODULE__{
@@ -32,15 +32,12 @@ defmodule LangChain.Provider.Error do
   end
 
   def from_response({:error, %{status: status, body: body} = response}, provider) do
-    case status do
-      429 -> new(:rate_limit, "Rate limit exceeded", provider, %{response: response})
-      401 -> new(:auth_error, "Authentication failed", provider, %{response: response})
-      400 -> new(:validation_error, extract_error_message(body), provider, %{response: response})
-      404 -> new(:api_error, "Resource not found", provider, %{response: response})
-      status when status >= 500 ->
-        new(:network_error, "Provider server error (#{status})", provider, %{response: response})
-      _ -> new(:api_error, "Provider request failed (#{status})", provider, %{response: response})
-    end
+    {type, message} = classify_error(status, body)
+    new(type, message, provider, %{response: response})
+  end
+
+  def from_response({:error, :timeout}, provider) do
+    new(:timeout_error, "Request timed out", provider)
   end
 
   def from_response({:error, reason}, provider) when is_binary(reason) do
@@ -51,8 +48,22 @@ defmodule LangChain.Provider.Error do
     new(:unknown_error, "Unknown error: #{inspect(reason)}", provider, %{original: reason})
   end
 
+  defp classify_error(status, body) do
+    case status do
+      429 -> {:rate_limit, "Rate limit exceeded"}
+      401 -> {:auth_error, "Authentication failed"}
+      400 -> {:validation_error, extract_error_message(body)}
+      404 -> {:api_error, "Resource not found"}
+      408 -> {:timeout_error, "Request timeout"}
+      status when status >= 500 ->
+        {:network_error, "Provider server error (#{status})"}
+      _ -> {:api_error, "Provider request failed (#{status})"}
+    end
+  end
+
   defp extract_error_message(%{"error" => %{"message" => message}}), do: message
   defp extract_error_message(%{"message" => message}), do: message
+  defp extract_error_message(%{"error" => message}) when is_binary(message), do: message
   defp extract_error_message(body) when is_binary(body), do: body
   defp extract_error_message(_), do: "Unknown error"
 end
