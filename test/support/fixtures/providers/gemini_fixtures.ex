@@ -22,7 +22,7 @@ defmodule LangChain.Test.Fixtures.Providers.GeminiFixtures do
           "content" => %{
             "parts" => [
               %{
-                "text" => ~s({"languages":[{"name":"Python","main_use":"Data Science"},{"name":"JavaScript","main_use":"Web Development"},{"name":"Java","main_use":"Enterprise Apps"}]}\n)
+                "text" => "{\"languages\":[{\"name\":\"Python\",\"main_use\":\"Data Science\"},{\"name\":\"JavaScript\",\"main_use\":\"Web Development\"},{\"name\":\"Java\",\"main_use\":\"Enterprise Apps\"}]}\n"
               }
             ]
           }
