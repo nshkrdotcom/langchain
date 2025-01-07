@@ -22,7 +22,7 @@ defmodule LangChain.Test.Fixtures.Providers.GeminiFixtures do
           "content" => %{
             "parts" => [
               %{
-                "text" => "{\"languages\":[{\"name\":\"Python\",\"type\":\"interpreted\",\"syntax\":\"dynamic\",\"popularity\":\"high\"},{\"name\":\"Java\",\"type\":\"compiled\",\"syntax\":\"static\",\"popularity\":\"medium\"},{\"name\":\"C++\",\"type\":\"compiled\",\"syntax\":\"static\",\"popularity\":\"low\"},{\"name\":\"JavaScript\",\"type\":\"interpreted\",\"syntax\":\"dynamic\",\"popularity\":\"high\"},{\"name\":\"C#\",\"type\":\"compiled\",\"syntax\":\"static\",\"popularity\":\"medium\"}]}"
+                "text" => ""```json\n{\"programming_languages\":[{\"name\":\"Python\",\"description\":\"A high-level, interpreted language\",\"features\":[\"Interpreted\",\"Easy to read\"]},{\"name\":\"Java\",\"description\":\"Object-oriented language\",\"features\":[\"Compiled\",\"Portable\"]}]}\n```"
               }
             ]
           }

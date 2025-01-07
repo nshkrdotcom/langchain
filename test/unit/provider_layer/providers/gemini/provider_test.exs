@@ -25,7 +25,11 @@ defmodule LangChain.Test.Unit.Providers.Gemini.ProviderTest do
       response = Provider.generate_content(prompt)
 
       assert match?({:ok, _}, response)
-      assert elem(response, 1) == get_in(expected, ["candidates", Access.at(0), "content", "parts", Access.at(0), "text"])
+      received = elem(response, 1)
+
+      expected_text = get_in(expected, ["candidates", Access.at(0), "content", "parts", Access.at(0), "text"])
+      assert received == expected_text
+
       {:ok, json} = Jason.decode(elem(response, 1))
       assert Map.has_key?(json, "languages")
     end
