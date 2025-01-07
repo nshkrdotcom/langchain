@@ -31,23 +31,18 @@ defmodule LangChain.Provider.Gemini.GenerativeModel do
     contents = if schema do
       [%{
         "parts" => [%{
-          "text" => prompt <> "\n\nOutput should be valid JSON matching this schema:\n#{inspect(schema)}"
+          "text" => prompt <> "\n\nProvide response as valid JSON without code blocks or backticks. Schema:\n#{inspect(schema)}"
         }]
       }]
     else
       [%{"parts" => [%{"text" => prompt}]}]
     end
 
-    %{"contents" => contents}
-    |> maybe_add_config(generation_config)
+    request = %{"contents" => contents}
+    if map_size(generation_config) > 0 do
+      Map.put(request, "generationConfig", generation_config)
+    else
+      request
+    end
   end
-
-  defp maybe_add_tools(request, nil), do: request
-  defp maybe_add_tools(request, tools), do: Map.put(request, "tools", tools)
-
-  defp maybe_add_config(request, config) when map_size(config) == 0, do: request
-  defp maybe_add_config(request, config), do: Map.put(request, "generationConfig", config)
-
-  defp maybe_add_structured_output(request, nil), do: request
-  defp maybe_add_structured_output(request, schema), do: Map.put(request, "tools", [%{"function_declarations" => [schema]}])
 end
