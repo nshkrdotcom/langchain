@@ -92,3 +92,68 @@ Fixtures are located in `test/support/fixtures/` and can be accessed via the `Fi
 ./run_tests.sh --no-verbose
 ```
 
+
+
+
+## Gemini API Tests
+
+The test suite includes several test cases for the Gemini API integration:
+
+### Basic Text Generation
+Tests the provider's ability to handle simple text generation:
+```elixir
+Provider.generate_content("What is the capital of France?")
+```
+Expected response contains text within the standard Gemini response structure:
+```json
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Paris"
+          }
+        ]
+      }
+    }
+  ]
+}
+```
+
+### Structured JSON Generation
+Tests the provider's ability to generate and validate structured JSON:
+```elixir
+Provider.generate_content("Generate JSON about programming languages")
+```
+Expected response contains valid JSON with programming language information:
+```json
+{
+  "languages": [
+    {
+      "name": "Python",
+      "description": "A high-level, interpreted language"
+    }
+  ]
+}
+```
+
+### Live API Testing
+Live API tests can be run using:
+```bash
+# Run specific Gemini test file
+mix test test/unit/provider_layer/providers/gemini/provider_test.exs --include live_call
+
+# Run all live API tests
+mix test --include live_call
+```
+
+### Test Tags
+- `@tag :live_call` - Marks tests that make actual API calls to Gemini
+- `@tag provider: :gemini` - Marks Gemini-specific tests
+
+### Environment Setup
+Tests require a valid Gemini API key set in your environment:
+```elixir
+config :langchain, :gemini_api_key, System.get_env("GEMINI_API_KEY")
+```
