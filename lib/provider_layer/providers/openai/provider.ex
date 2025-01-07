@@ -1,5 +1,5 @@
 defmodule LangChain.Provider.OpenAI do
-  @behaviour LangChain.Provider.Behavior
+  @behaviour LangChain.Provider
   
   def generate_content(_prompt, _opts \\ []) do
     # Implementation
