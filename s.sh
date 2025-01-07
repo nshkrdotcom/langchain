@@ -6,5 +6,6 @@ mix test test/unit/provider_layer/providers/gemini/provider_test.exs --include l
 git add .
 git commit --m 'fb'
 git push
+ssh replit_langchain 'bash -s' < f.sh
 rm r.sh
-#nano r.sh
+nano r.sh
