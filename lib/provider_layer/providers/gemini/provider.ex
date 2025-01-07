@@ -17,7 +17,7 @@ defmodule LangChain.Provider.Gemini.Provider do
         schema_str = case schema do
           %{type: :object, properties: props} ->
             Jason.encode!(%{type: "object", properties: props})
-          _ -> JsonHandler.default_schema()
+          _ -> LangChain.Provider.Gemini.JsonHandler.default_schema()
         end
         {
           """

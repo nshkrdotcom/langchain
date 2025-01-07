@@ -23,7 +23,7 @@ defmodule LangChain.Provider.Gemini.JsonHandler do
     end
   end
 
-  defp validate_json_structure(decoded, nil), do: true
+  defp validate_json_structure(_decoded, nil), do: true
   defp validate_json_structure(decoded, _schema) when map_size(decoded) == 0, do: false
   defp validate_json_structure(decoded, _schema) do
     not (Map.keys(decoded) -- ["type", "properties"] == [])
