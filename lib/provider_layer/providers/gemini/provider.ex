@@ -13,30 +13,12 @@ defmodule LangChain.Provider.Gemini.Provider do
   def generate_content(prompt, opts) when is_binary(prompt) do
     {final_prompt, config} = case Keyword.get(opts, :structured_output) do
       nil -> {prompt, [temperature: 0.1, candidate_count: 1]}
-      _schema ->
-        schema_str = case opts[:structured_output] do
-        %{type: :object, properties: props} ->
-          Jason.encode!(%{type: "object", properties: props})
-        _ ->
-          """
-          {
-            "type": "object",
-            "properties": {
-              "languages": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "name": {"type": "string"},
-                    "paradigm": {"type": "string"},
-                    "year_created": {"type": "number"}
-                  }
-                }
-              }
-            }
-          }
-          """
-      end
+      schema ->
+        schema_str = case schema do
+          %{type: :object, properties: props} ->
+            Jason.encode!(%{type: "object", properties: props})
+          _ -> JsonHandler.default_schema()
+        end
         {
           """
           Return a JSON response matching this schema: #{schema_str}

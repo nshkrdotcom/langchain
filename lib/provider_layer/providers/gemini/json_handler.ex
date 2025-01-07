@@ -28,4 +28,25 @@ defmodule LangChain.Provider.Gemini.JsonHandler do
   defp validate_json_structure(decoded, _schema) do
     not (Map.keys(decoded) -- ["type", "properties"] == [])
   end
+
+  def default_schema do
+    """
+    {
+      "type": "object",
+      "properties": {
+        "languages": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {"type": "string"},
+              "paradigm": {"type": "string"},
+              "year_created": {"type": "number"}
+            }
+          }
+        }
+      }
+    }
+    """
+  end
 end
