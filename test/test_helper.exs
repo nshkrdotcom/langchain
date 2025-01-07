@@ -1,5 +1,10 @@
-ExUnit.start()
-ExUnit.configure(exclude: [:live_call])
+# Get verbosity level from environment
+verbosity = System.get_env("TEST_VERBOSE", "false")
 
-# Load support files
-Code.require_file("support/test_case.ex", __DIR__)
+ExUnit.configure(
+  formatters: [ExUnit.CLIFormatter],
+  trace: verbosity == "true",
+  exclude: [:skip]
+)
+
+ExUnit.start()
