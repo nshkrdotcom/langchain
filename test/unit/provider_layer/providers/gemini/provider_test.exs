@@ -87,14 +87,18 @@ defmodule LangChain.Test.Unit.Providers.Gemini.ProviderTest do
               properties: %{
                 name: %{type: :string},
                 paradigm: %{type: :string},
-                year_created: %{type: :number}
+                year_created: %{type: :number},
+                features: %{
+                  type: :array,
+                  items: %{type: :string}
+                }
               }
             }
           }
         }
       }
 
-      {:ok, parsed_json} = Provider.generate_content("List 3 programming languages", structured_output: schema)
+      {:ok, parsed_json} = Provider.generate_content("List 3 programming languages with their main features", structured_output: schema)
       
       # Validate response structure
       assert is_map(parsed_json)
@@ -134,6 +138,46 @@ defmodule LangChain.Test.Unit.Providers.Gemini.ProviderTest do
         {:error, error} ->
           flunk("API call failed: #{inspect(error)}")
       end
+    end
+
+    test "handles invalid prompts gracefully" do
+      result = Provider.generate_content("")
+      assert match?({:error, _}, result)
+    end
+
+    test "validates response structure" do
+      {:ok, response} = Provider.generate_content("What is functional programming?")
+      assert is_binary(response)
+      assert String.length(response) > 20
+      Logger.info("✅ Generated valid response: #{response}")
+    end
+
+    test "handles complex structured output" do
+      schema = %{
+        type: :object,
+        properties: %{
+          analysis: %{
+            type: :object,
+            properties: %{
+              main_points: %{type: :array, items: %{type: :string}},
+              sentiment: %{type: :string, enum: ["positive", "neutral", "negative"]},
+              word_count: %{type: :number}
+            }
+          }
+        }
+      }
+
+      {:ok, parsed_json} = Provider.generate_content(
+        "Analyze this text: 'Elixir is a dynamic, functional language designed for building scalable and maintainable applications.'",
+        structured_output: schema
+      )
+
+      assert Map.has_key?(parsed_json, "analysis")
+      assert is_list(parsed_json["analysis"]["main_points"])
+      assert parsed_json["analysis"]["sentiment"] in ["positive", "neutral", "negative"]
+      assert is_number(parsed_json["analysis"]["word_count"])
+      
+      Logger.info("✅ Generated valid structured analysis: #{inspect(parsed_json, pretty: true)}")
     end
   end
 end
