@@ -158,6 +158,7 @@ defmodule LangChain.Test.Unit.Providers.Gemini.ProviderTest do
         properties: %{
           analysis: %{
             type: :object,
+            required: true,
             properties: %{
               main_points: %{type: :array, items: %{type: :string}},
               sentiment: %{type: :string, enum: ["positive", "neutral", "negative"]},

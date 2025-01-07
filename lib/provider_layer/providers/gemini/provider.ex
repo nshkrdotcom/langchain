@@ -2,7 +2,10 @@ defmodule LangChain.Provider.Gemini.Provider do
   require Logger
   alias LangChain.Google.GenerativeModel
 
-  def generate_content(prompt, opts \\ []) do
+  def generate_content(prompt, opts \\ [])  
+  def generate_content(prompt, _opts) when not is_binary(prompt), do: {:error, "Invalid prompt"}
+  def generate_content("", _opts), do: {:error, "Empty prompt"}
+  def generate_content(prompt, opts) when is_binary(prompt) do
     {final_prompt, config} = case Keyword.get(opts, :structured_output) do
       nil -> {prompt, [temperature: 0.1, candidate_count: 1]}
       _schema ->
