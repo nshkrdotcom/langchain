@@ -59,23 +59,7 @@ defmodule LangChain.Provider.Gemini.Provider do
           text ->
             case Keyword.get(opts, :structured_output) do
               nil -> {:ok, text}
-              _schema ->
-                cleaned_text = text
-                  |> String.trim()
-                  |> String.replace(~r/```(json)?\s*/, "")
-                  |> String.replace("```", "")
-                  |> String.trim()
-
-                case Jason.decode(cleaned_text) do
-                  {:ok, decoded} when is_map(decoded) ->
-                    if map_size(decoded) > 0 and not (Map.keys(decoded) -- ["type", "properties"] == []) do
-                      {:ok, decoded}
-                    else
-                      {:error, "Invalid JSON structure"}
-                    end
-                  _ ->
-                    {:error, "Invalid JSON response"}
-                end
+              schema -> LangChain.Provider.Gemini.JsonHandler.decode_and_validate(text, schema)
             end
         end
       error ->
