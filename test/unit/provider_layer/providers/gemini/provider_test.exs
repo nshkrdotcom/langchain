@@ -15,11 +15,11 @@ defmodule LangChain.Test.Unit.Providers.Gemini.ProviderTest do
       text = elem(response, 1)
       assert is_binary(text)
       assert String.length(text) > 0
-      
+
       # Verify response matches expected mock format
       expected_text = get_in(expected, ["candidates", Access.at(0), "content", "parts", Access.at(0), "text"])
       assert text == expected_text
-      
+
       Logger.info("✅ Generated text response: #{text}")
     end
 
@@ -29,30 +29,30 @@ defmodule LangChain.Test.Unit.Providers.Gemini.ProviderTest do
 
       assert match?({:ok, _}, response)
       text = elem(response, 1)
-      
+
       # Basic response validation
       assert is_binary(text)
       assert String.contains?(text, "```")
-      
+
       json_str = case text do
-        nil -> 
+        nil ->
           flunk("Received nil response from provider")
         text when is_binary(text) ->
           text
           |> String.split("```")
           |> Enum.at(1)
           |> case do
-            nil -> 
+            nil ->
               text # Try parsing the whole response if no code block markers
-            block -> 
+            block ->
             block
               |> String.replace(~r/^json\n/, "") # Remove "json" prefix if present
               |> String.trim()
           end
       end
-      
+
       assert {:ok, parsed_json} = Jason.decode(json_str)
-      
+
       # Validate JSON structure
       assert is_map(parsed_json)
 
@@ -64,14 +64,14 @@ defmodule LangChain.Test.Unit.Providers.Gemini.ProviderTest do
 
       langs = parsed_json[languages_key]
       assert is_list(langs)
-      
+
       # Validate each language entry has required fields
       Enum.each(langs, fn lang ->
         assert is_map(lang), "Each language entry should be a map"
         assert Map.has_key?(lang, "name"), "Language should have a name"
         # Don't strictly validate other fields as LLM output may vary
         assert map_size(lang) > 1, "Language should have additional attributes"
-      end)      
+      end)
 
       Logger.info("✅ Generated valid JSON response:\n#{json_str}")
     end
@@ -99,15 +99,15 @@ defmodule LangChain.Test.Unit.Providers.Gemini.ProviderTest do
       }
 
       {:ok, parsed_json} = Provider.generate_content("List 3 programming languages with their main features", structured_output: schema)
-      
+
       # Validate response structure
       assert is_map(parsed_json)
       assert Map.has_key?(parsed_json, "languages")
-      
+
       languages = parsed_json["languages"]
       assert is_list(languages)
       assert length(languages) == 3
-      
+
       # Validate each language entry
       Enum.each(languages, fn lang ->
         assert is_map(lang)
@@ -119,8 +119,6 @@ defmodule LangChain.Test.Unit.Providers.Gemini.ProviderTest do
       Logger.info("✅ Generated valid structured output:\n#{inspect(parsed_json, pretty: true)}")
     end
 
-
-    @tag :live_call
     test "successfully makes live API calls with proper response handling" do
       prompt = "What is quantum computing? Keep it brief."
       case Provider.generate_content(prompt) do
@@ -128,13 +126,13 @@ defmodule LangChain.Test.Unit.Providers.Gemini.ProviderTest do
           # Basic validation
           assert is_binary(response)
           assert String.length(response) > 0
-          
+
           # Verify it mentions quantum computing
-          assert String.contains?(String.downcase(response), "quantum"), 
+          assert String.contains?(String.downcase(response), "quantum"),
             "Response should mention quantum computing: #{response}"
-            
+
           Logger.info("✅ Live API response: #{response}")
-          
+
         {:error, error} ->
           flunk("API call failed: #{inspect(error)}")
       end
@@ -151,8 +149,9 @@ defmodule LangChain.Test.Unit.Providers.Gemini.ProviderTest do
       assert String.length(response) > 20
       Logger.info("✅ Generated valid response: #{response}")
     end
+  end
 
-    describe "structured output handling" do
+  describe "structured output handling" do
       test "handles complex structured output" do
         schema = %{
           type: :object,
@@ -178,7 +177,7 @@ defmodule LangChain.Test.Unit.Providers.Gemini.ProviderTest do
         assert is_list(parsed_json["analysis"]["main_points"])
         assert parsed_json["analysis"]["sentiment"] in ["positive", "neutral", "negative"]
         assert is_number(parsed_json["analysis"]["word_count"])
-        
+
         Logger.info("✅ Generated valid structured analysis: #{inspect(parsed_json, pretty: true)}")
       end
 
@@ -187,7 +186,7 @@ defmodule LangChain.Test.Unit.Providers.Gemini.ProviderTest do
           "",
           structured_output: %{type: :object, properties: %{}}
         )
-        
+
         assert map_size(parsed_json) == 0
       end
 
@@ -196,7 +195,7 @@ defmodule LangChain.Test.Unit.Providers.Gemini.ProviderTest do
           "Generate invalid JSON",
           structured_output: %{type: :object, properties: %{}}
         )
-        
+
         assert match?({:error, _}, result)
       end
 
@@ -220,4 +219,3 @@ defmodule LangChain.Test.Unit.Providers.Gemini.ProviderTest do
       end
     end
   end
-end
