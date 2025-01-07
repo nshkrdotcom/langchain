@@ -1,16 +1,25 @@
-defmodule LangChain.Provider.Gemini.Provider do
+defmodule LangChain.Provider.Gemini do
+  alias LangChain.Provider.Error
   require Logger
   alias LangChain.Google.GenerativeModel
 
-  def generate_content(prompt, opts \\ [])
-  def generate_content(prompt, _opts) when not is_binary(prompt), do: {:error, "Invalid prompt"}
-  def generate_content("", opts) do
+  def generate_content(prompt, opts \\ []) do
+    case make_request(prompt, opts) do
+      {:ok, response} ->
+        {:ok, process_response(response, opts)}
+      {:error, reason} ->
+        {:error, Error.from_response(reason, :gemini)}
+    end
+  end
+
+  defp make_request(prompt, opts) when not is_binary(prompt), do: {:error, "Invalid prompt"}
+  defp make_request("", opts) do
     case Keyword.get(opts, :structured_output) do
       nil -> {:error, "Empty prompt"}
       _ -> {:ok, %{}}
     end
   end
-  def generate_content(prompt, opts) when is_binary(prompt) do
+  defp make_request(prompt, opts) when is_binary(prompt) do
     {final_prompt, config} = case Keyword.get(opts, :structured_output) do
       nil -> {prompt, [temperature: 0.1, candidate_count: 1]}
       schema ->
@@ -32,21 +41,20 @@ defmodule LangChain.Provider.Gemini.Provider do
         }
     end
 
-    case GenerativeModel.generate_content(final_prompt, config) do
-      {:ok, response} ->
-        case get_in(response, ["candidates", Access.at(0), "content", "parts", Access.at(0), "text"]) do
-          nil ->
-            Logger.error("Failed to extract text from response structure: #{inspect(response, pretty: true)}")
-            {:error, "Invalid response format"}
-          text ->
-            case Keyword.get(opts, :structured_output) do
-              nil -> {:ok, text}
-              schema -> LangChain.Provider.Gemini.JsonHandler.decode_and_validate(text, schema)
-            end
+    GenerativeModel.generate_content(final_prompt, config)
+  end
+
+
+  defp process_response(response, opts) do
+    case get_in(response, ["candidates", Access.at(0), "content", "parts", Access.at(0), "text"]) do
+      nil ->
+        Logger.error("Failed to extract text from response structure: #{inspect(response, pretty: true)}")
+        {:error, "Invalid response format"}
+      text ->
+        case Keyword.get(opts, :structured_output) do
+          nil -> {:ok, text}
+          schema -> LangChain.Provider.Gemini.JsonHandler.decode_and_validate(text, schema)
         end
-      error ->
-        Logger.error("Gemini API error: #{inspect(error, pretty: true)}")
-        error
     end
   end
 end
