@@ -13,6 +13,11 @@ defmodule LangChain.Google.Client do
       {"Content-Type", "application/json"},
       {"x-goog-api-key", api_key}
     ]
+
+    options = [
+      receive_timeout: 30_000, # 30 seconds
+      pool_timeout: 30_000
+    ]
     
     body = %{
       "contents" => [
@@ -26,7 +31,7 @@ defmodule LangChain.Google.Client do
       ]
     }
 
-    case Req.post(url, json: body, headers: headers) do
+    case Req.post(url, json: body, headers: headers, options: options) do
       {:ok, %{status: 200, body: response}} ->
         {:ok, response}
       {:ok, %{status: status, body: error}} ->
