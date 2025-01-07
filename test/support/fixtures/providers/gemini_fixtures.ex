@@ -6,7 +6,7 @@ defmodule LangChain.Test.Fixtures.Providers.GeminiFixtures do
           "content" => %{
             "parts" => [
               %{
-                "text" => "Paris is the capital of France. It is known as the City of Light and is famous for its iconic Eiffel Tower."
+                "text" => "Paris"
               }
             ]
           }
@@ -22,7 +22,7 @@ defmodule LangChain.Test.Fixtures.Providers.GeminiFixtures do
           "content" => %{
             "parts" => [
               %{
-		"text" => ~s({"languages":[{"name":"Python","main_use":"Data Science"},{"name":"JavaScript","main_use":"Web Development"},{"name":"Java","main_use":"Enterprise Apps"}]}\n)
+                "text" => ~s({"languages":[{"name":"Python","main_use":"Data Science"},{"name":"JavaScript","main_use":"Web Development"},{"name":"Java","main_use":"Enterprise Apps"}]}\n)
               }
             ]
           }
