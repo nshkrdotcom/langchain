@@ -52,7 +52,7 @@ defmodule LangChain.Provider.Gemini do
         {:error, "Invalid response format"}
       text ->
         case Keyword.get(opts, :structured_output) do
-          nil -> {:ok, text}
+          nil -> text
           schema -> LangChain.Provider.Gemini.JsonHandler.decode_and_validate(text, schema)
         end
     end
