@@ -13,13 +13,21 @@ defmodule LangChain.Provider.Gemini do
   def generate_content(prompt, opts) when is_binary(prompt) do
     case GenerativeModel.generate_content(prompt, opts) do
       {:ok, %{"candidates" => [%{"content" => %{"parts" => [%{"text" => text}]}} | _]} = _response} ->
+        require Logger
         if Keyword.get(opts, :structured_output) do
+          Logger.debug("Attempting to parse JSON response: #{inspect(text)}")
           case Jason.decode(String.trim(text)) do
             {:ok, parsed} ->
-              if is_map(parsed) && !Map.has_key?(parsed, "type"),
+              Logger.debug("Parsed JSON: #{inspect(parsed)}")
+              if is_map(parsed) && map_size(parsed) > 0 && !Map.has_key?(parsed, "type"),
                 do: {:ok, parsed},
-                else: {:error, "Invalid response structure"}
-            {:error, _} -> {:error, "Invalid JSON response"}
+                else: (
+                  Logger.debug("Invalid structure detected: #{inspect(parsed)}")
+                  {:error, "Invalid response structure"}
+                )
+            {:error, reason} ->
+              Logger.debug("JSON parsing failed: #{inspect(reason)}")
+              {:error, "Invalid JSON response"}
           end
         else
           {:ok, text}
