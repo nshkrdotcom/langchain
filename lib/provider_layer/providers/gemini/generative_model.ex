@@ -17,26 +17,29 @@ defmodule LangChain.Provider.Gemini.GenerativeModel do
   end
 
   defp build_request(prompt, opts) do
-    base_request = %{
-      "contents" => [%{"parts" => [%{"text" => prompt}]}]
-    }
-
-    {tools, generation_config} = case opts do
-      [] -> {nil, %{}}
+    generation_config = case opts do
+      [] -> %{}
       opts ->
-        tools = Keyword.get(opts, :tools)
-        config = if temp = Keyword.get(opts, :temperature) do
+        if temp = Keyword.get(opts, :temperature) do
           %{"temperature" => temp}
         else
           %{}
         end
-        {tools, config}
     end
 
-    base_request
-    |> maybe_add_tools(tools)
+    schema = Keyword.get(opts, :structured_output)
+    contents = if schema do
+      [%{
+        "parts" => [%{
+          "text" => prompt <> "\n\nOutput should be valid JSON matching this schema:\n#{inspect(schema)}"
+        }]
+      }]
+    else
+      [%{"parts" => [%{"text" => prompt}]}]
+    end
+
+    %{"contents" => contents}
     |> maybe_add_config(generation_config)
-    |> maybe_add_structured_output(Keyword.get(opts, :structured_output))
   end
 
   defp maybe_add_tools(request, nil), do: request
