@@ -55,7 +55,7 @@ defmodule LangChain.Test.Unit.Providers.Gemini.ProviderTest do
       # Validate JSON structure
       assert is_map(parsed_json)
       assert Map.has_key?(parsed_json, "programming_languages")
-      langs = parsed_json["languages"]
+      langs = parsed_json["programming_languages"]
       assert is_list(langs)
       
       # Validate each language entry has required fields
