@@ -1,5 +1,6 @@
 defmodule LangChain.Test.Unit.Providers.Gemini.ProviderTest do
   use LangChain.BaseTestCase
+  import Mock
   alias LangChain.Provider.Gemini
   alias LangChain.Test.Fixtures.Providers.GeminiFixtures
   require Logger
@@ -9,7 +10,10 @@ defmodule LangChain.Test.Unit.Providers.Gemini.ProviderTest do
     test "handles basic text generation with mocked responses" do
       prompt = "What is the capital of France?"
       expected = GeminiFixtures.mock_text_response()
-      response = Gemini.generate_content(prompt)
+
+      with_mock LangChain.Provider.Gemini.Client,
+        generate_content: fn _request -> {:ok, expected} end do
+        response = Gemini.generate_content(prompt)
 
       assert match?({:ok, _}, response)
       text = elem(response, 1)
@@ -21,6 +25,7 @@ defmodule LangChain.Test.Unit.Providers.Gemini.ProviderTest do
       assert text == expected_text
 
       Logger.info("✅ Generated text response: #{text}")
+      end
     end
 
     test "handles structured JSON generation with validation" do
