@@ -6,7 +6,7 @@ defmodule LangChain.Test.Fixtures.Providers.GeminiFixtures do
           "content" => %{
             "parts" => [
               %{
-                "text" => "Paris is the capital of France. It is known as the City of Light  and is famous for its iconic Eiffel Tower.."
+                "text" => "Paris is the capital of France. It is known as the City of Light and is famous for its iconic Eiffel Tower.."
               }
             ]
           }
