@@ -36,3 +36,4 @@ find test -type f -name "*_test.exs" -exec sed -i 's/use LangChain.TestCase/use 
 # Remove old test case file
 rm -f test/support/test_case.ex
 EOL
+
