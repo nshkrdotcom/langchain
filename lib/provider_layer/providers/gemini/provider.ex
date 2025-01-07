@@ -15,7 +15,7 @@ defmodule LangChain.Provider.Gemini do
   defp make_request(prompt, _opts) when not is_binary(prompt), do: {:error, "Invalid prompt"}
   defp make_request("", opts) do
     case Keyword.get(opts, :structured_output) do
-      nil -> {:error, "Empty prompt"}
+      nil -> {:error, %{status: 400, body: "Empty prompt"}}
       _ -> {:ok, %{}}
     end
   end
@@ -62,7 +62,7 @@ defmodule LangChain.Provider.Gemini do
           schema ->
             case LangChain.Provider.Gemini.JsonHandler.decode_and_validate(text, schema) do
               {:error, reason} -> {:error, reason}
-              decoded -> decoded
+              {:ok, decoded} -> decoded
             end
         end
     end
