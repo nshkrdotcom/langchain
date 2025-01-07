@@ -16,7 +16,7 @@ defmodule LangChain.Provider.Gemini.JsonHandler do
         if validate_json_structure(decoded, schema) do
           decoded
         else
-          {:error, "Invalid JSON structure"}
+          {:error, %{status: 400, body: "Invalid JSON structure"}}
         end
       _ ->
         {:error, "Invalid JSON response"}
