@@ -35,6 +35,7 @@ defmodule LangChain.MixProject do
     [
       {:ecto, "~> 3.10"},
       {:jason, "~> 1.4"},
+      {:req, "~> 0.4.0"},
       {:excoveralls, "~> 0.18", only: :test}
     ]
   end
