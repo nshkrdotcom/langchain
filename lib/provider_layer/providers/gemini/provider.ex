@@ -59,7 +59,16 @@ defmodule LangChain.Provider.Gemini.Provider do
           text ->
             case Keyword.get(opts, :structured_output) do
               nil -> {:ok, text}
-              _schema -> Jason.decode(text)
+              _schema ->
+                # First validate if the response looks like JSON
+                if String.trim(text) =~ ~r/^[{\[].*[}\]]$/ do
+                  case Jason.decode(text) do
+                    {:ok, decoded} when is_map(decoded) -> {:ok, decoded}
+                    _ -> {:error, "Invalid JSON response"}
+                  end
+                else
+                  {:error, "Invalid JSON response"}
+                end
             end
         end
       error ->
