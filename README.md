@@ -10,9 +10,33 @@ alias LangChain.Provider.Gemini.Provider
 # Generate simple text content
 {:ok, response} = Provider.generate_content("What is Elixir?")
 
-# Generate structured JSON
+# Generate structured JSON by force
 {:ok, json_response} = Provider.generate_content("List 3 programming languages as JSON")
+
+# Use Gemini's structured output feature
+schema = %{
+  type: "object",
+  properties: %{
+    languages: %{
+      type: "array",
+      items: %{
+        type: "object",
+        properties: %{
+          name: %{type: "string"},
+          paradigm: %{type: "string"},
+          year_created: %{type: "number"}
+        }
+      }
+    }
+  }
+}
+
+{:ok, structured_response} = Provider.generate_content(
+  "List 3 programming languages",
+  structured_output: schema
+)
 ```
+
 
 ### API Structure
 
