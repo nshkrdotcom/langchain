@@ -1,8 +1,8 @@
-defmodule LangChain.Google.GenerativeModel do
+defmodule LangChain.Gemini.GenerativeModel do
   @moduledoc """
-  Provides functions for interacting with Google's Gemini models.
+  Provides functions for interacting with Gemini's Gemini models.
   """
-  alias LangChain.Google.Client
+  alias LangChain.Gemini.Client
   alias LangChain.Error
 
   def generate_content(prompt, opts \\ []) do
@@ -40,7 +40,7 @@ defmodule LangChain.Google.GenerativeModel do
   end
 
   defp apply_logging_middleware(context) do
-    IO.inspect(context, label: "LangChain.Google.GenerativeModel Context")
+    IO.inspect(context, label: "LangChain.Gemini.GenerativeModel Context")
     context
   end
 

@@ -1,8 +1,8 @@
-defmodule LangChain.Google.GenerativeModel do
+defmodule LangChain.Gemini.GenerativeModel do
   @moduledoc """
-  Provides functions for interacting with Google's Gemini models.
+  Provides functions for interacting with Gemini's Gemini models.
   """
-  alias LangChain.Google.Client
+  alias LangChain.Gemini.Client
 
   @spec generate_content(String.t(), keyword()) :: {:ok, map()} | {:error, term()}
   def generate_content(prompt, opts \\ [])  

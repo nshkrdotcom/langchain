@@ -1,15 +1,15 @@
-# lib/langchain/google.ex (Google provider module)
-defmodule LangChain.Google do
-  @moduledoc "Implementation of the LangChain.Provider behaviour for Google's AI models"
+# lib/langchain/google.ex (Gemini provider module)
+defmodule LangChain.Gemini do
+  @moduledoc "Implementation of the LangChain.Provider behaviour for Gemini's AI models"
   @behaviour LangChain.Provider
-  alias LangChain.Google.GenerativeModel # etc...
+  alias LangChain.Gemini.GenerativeModel # etc...
 
   def generate_content(prompt, opts) do
     GenerativeModel.generate_content(prompt, opts)
   end
 
   def stream_generate_content(_prompt, _opts) do
-    # Delegate to LangChain.Google.GenerativeModel.stream_generate_content
+    # Delegate to LangChain.Gemini.GenerativeModel.stream_generate_content
   end
 
   # ... other functions implementing the LangChain.Provider behaviour ...

@@ -34,12 +34,12 @@ defmodule LangChain.ChatModels.ChatModel do
               error_context
 
             context ->
-              # Call the core logic (e.g., LangChain.Google.GenerativeModel.generate_content)
+              # Call the core logic (e.g., LangChain.Gemini.GenerativeModel.generate_content)
               # ... your existing generate_content implementation ...
               # Ensure that the core logic also returns a context map
               # For example:
               with {:ok, response} <-
-                     LangChain.Google.GenerativeModel.generate_content(context.model, context.messages, context.opts) do
+                     LangChain.Gemini.GenerativeModel.generate_content(context.model, context.messages, context.opts) do
                 Map.put(context, :response, response)
               else
                 {:error, reason} ->
