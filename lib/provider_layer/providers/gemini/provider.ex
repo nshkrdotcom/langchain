@@ -1,5 +1,5 @@
 defmodule LangChain.ProviderLayer.Providers.Gemini.Provider do
-  @behaviour LangChain.ProviderLayer.Behaviors.Provider
+  @behaviour LangChain.Provider.Behavior  # Fixed behavior path
   alias LangChain.Google.GenerativeModel
 
   @spec generate(String.t()) :: {:ok, String.t()} | {:error, term()}

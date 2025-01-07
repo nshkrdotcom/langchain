@@ -4,24 +4,22 @@ defmodule LangChain.Google.GenerativeModel do
   """
   alias LangChain.Google.Client
   
-  use LangChain.ChatModels.ChatModel,
-    middleware: [
-      LangChain.Middleware.ErrorMiddleware,
-      LangChain.Middleware.LoggingMiddleware,
-      LangChain.Middleware.PersistenceMiddleware
-    ]
+  # Comment out middleware for now to fix undefined function error
+  # use LangChain.ChatModels.ChatModel,
+  #   middleware: [
+  #     LangChain.Middleware.ErrorMiddleware,
+  #     LangChain.Middleware.LoggingMiddleware,
+  #     LangChain.Middleware.PersistenceMiddleware
+  #   ]
 
   @spec generate_content(String.t(), keyword()) :: {:ok, map()} | {:error, term()}
-  def generate_content(prompt, opts \\ [])
-  def generate_content(prompt, opts) do
-    if not is_binary(prompt) do
-      {:error, "Invalid prompt"}
-    else
-      with {:ok, response} <- Client.generate_content(prompt, opts) do
-        case Keyword.get(opts, :response_mime_type) do
-          "application/json" -> {:ok, response}
-          _ -> {:ok, response}
-        end
+  def generate_content(prompt, opts \\ [])  # Header with default
+  def generate_content(prompt, _opts) when not is_binary(prompt), do: {:error, "Invalid prompt"}
+  def generate_content(prompt, opts) when is_binary(prompt) do
+    with {:ok, response} <- Client.generate_content(prompt, opts) do
+      case Keyword.get(opts, :response_mime_type) do
+        "application/json" -> {:ok, response}
+        _ -> {:ok, response}
       end
     end
   end
