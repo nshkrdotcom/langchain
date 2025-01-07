@@ -6,6 +6,7 @@ defmodule LangChain.Provider.Gemini.Provider do
     request_config = case Keyword.get(opts, :structured_output) do
       nil -> []
       schema -> 
+        schema_json = Jason.encode!(convert_schema_format(schema))
         [
           tools: [%{
             functionDeclarations: [%{
@@ -17,10 +18,22 @@ defmodule LangChain.Provider.Gemini.Provider do
         ]
     end
 
-    generation_config = [
-      temperature: 0.1,
-      candidate_count: 1
-    ]
+    generation_config = case Keyword.get(opts, :structured_output) do
+      nil -> [temperature: 0.1, candidate_count: 1]
+      schema ->
+        schema_json = Jason.encode!(convert_schema_format(schema))
+        {
+          [temperature: 0.1, candidate_count: 1],
+          """
+          Return a JSON response matching this schema: #{schema_json}
+
+          Important: Your response must be valid JSON only, no other text.
+          Do not include markdown formatting or code blocks.
+
+          Prompt: #{prompt}
+          """
+        }
+    end
 
     case GenerativeModel.generate_content(prompt, generation_config) do
       {:ok, response} -> 
