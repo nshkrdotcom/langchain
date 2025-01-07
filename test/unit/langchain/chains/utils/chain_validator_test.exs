@@ -1,7 +1,6 @@
 defmodule LangChain.Test.Unit.Chains.Utils.ChainValidatorTest do
   use LangChain.BaseTestCase
 
-  alias LangChain.Chains.Utils.ChainValidator
 
   describe "chain validator" do
     test "validates chain configurations" do

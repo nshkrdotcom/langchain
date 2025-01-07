@@ -1,7 +1,6 @@
 defmodule LangChain.Test.Unit.Chains.Utils.ChainResultTest do
   use LangChain.BaseTestCase
 
-  alias LangChain.Chains.Utils.ChainResult
 
   describe "chain result" do
     test "handles successful results" do
