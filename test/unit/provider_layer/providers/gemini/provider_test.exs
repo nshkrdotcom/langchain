@@ -3,6 +3,7 @@ defmodule LangChain.Test.Unit.Providers.Gemini.ProviderTest do
   alias LangChain.Provider.Gemini.Provider
   alias LangChain.Test.Fixtures.Providers.GeminiFixtures
   require Logger
+  @moduletag :live_call
 
   describe "Gemini Provider" do
     test "handles basic text generation with mocked responses" do
