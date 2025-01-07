@@ -9,7 +9,7 @@ defmodule LangChain.Chains.Core.ToolChain do
     {:ok, struct(__MODULE__, opts)}
   end
 
-  def run(chain, input) do
+  def run(chain, _input) do
     {:ok, chain, %{tool_response: "Tool executed"}}
   end
 end

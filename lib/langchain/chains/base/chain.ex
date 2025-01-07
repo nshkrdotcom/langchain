@@ -15,4 +15,17 @@ defmodule LangChain.Chains.Base.Chain do
   @callback init(map()) :: {:ok, t()} | {:error, any()}
 
   defstruct [:name, :config, :callbacks, :metadata]
+
+  defmacro __using__(_opts) do
+    quote do
+      @behaviour LangChain.Chains.Base.Chain
+      
+      def init(opts \\ %{}) do
+        {:ok, struct(__MODULE__, opts)}
+      end
+
+      defoverridable init: 1
+    end
+  end
+
 end

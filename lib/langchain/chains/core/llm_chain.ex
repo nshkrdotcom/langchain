@@ -9,7 +9,7 @@ defmodule LangChain.Chains.Core.LLMChain do
     {:ok, struct(__MODULE__, opts)}
   end
 
-  def run(chain, input) do
+  def run(chain, _input) do
     {:ok, chain, %{response: "Chain executed"}}
   end
 end

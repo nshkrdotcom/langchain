@@ -9,7 +9,7 @@ defmodule LangChain.Chains.Conversation.Summarizer do
     {:ok, struct(__MODULE__, opts)}
   end
 
-  def run(chain, conversation) do
+  def run(chain, _conversation) do
     {:ok, chain, %{summary: "Conversation summarized"}}
   end
 end

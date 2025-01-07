@@ -9,7 +9,7 @@ defmodule LangChain.Chains.Extraction.DataExtractor do
     {:ok, struct(__MODULE__, opts)}
   end
 
-  def run(chain, text) do
+  def run(chain, _text) do
     {:ok, chain, %{extracted_data: %{}}}
   end
 end

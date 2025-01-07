@@ -9,7 +9,7 @@ defmodule LangChain.Chains.Routing.RouterChain do
     {:ok, struct(__MODULE__, opts)}
   end
 
-  def run(chain, input) do
+  def run(chain, _input) do
     {:ok, chain, %{route: "Determined route"}}
   end
 end
