@@ -5,18 +5,21 @@ defmodule LangChain.Provider.Gemini do
   def generate_content(prompt, opts \\ [])
   def generate_content(prompt, opts) when is_binary(prompt) do
     case GenerativeModel.generate_content(prompt, opts) do
-      {:ok, %{"candidates" => [%{"content" => %{"parts" => [%{"text" => text}]}} | _]} = response} ->
+      {:ok, %{"candidates" => [%{"content" => %{"parts" => [%{"text" => text}]}} | _]} = _response} ->
         if Keyword.get(opts, :structured_output) do
           case Jason.decode(String.trim(text)) do
-            {:ok, parsed} -> {:ok, parsed}
+            {:ok, parsed} ->
+              if is_map(parsed), do: {:ok, parsed}, else: {:error, "Invalid response structure"}
             {:error, _} -> {:error, "Invalid JSON response"}
           end
         else
           {:ok, text}
         end
-      error -> error
+      {:ok, _} -> {:error, "Invalid response format"}
+      {:error, reason} -> {:error, reason}
     end
   end
+  def generate_content(_, _), do: {:error, "Invalid prompt"}
 
   def stream_generate_content(prompt, opts \\ []) do
     GenerativeModel.stream_generate_content(prompt, opts)
