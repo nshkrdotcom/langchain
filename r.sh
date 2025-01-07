@@ -1,41 +1,147 @@
 
 #!/bin/bash
 
-# Add missing requires
-echo "Fixing missing requires..."
-sed -i '1i\require Logger' lib/langchain/middleware/logging.ex
-sed -i '1i\require Logger' lib/langchain/persistence/logger.ex
+# Fix mix.exs dependencies section
+cat > mix.exs << 'EOL'
+defmodule LangChain.MixProject do
+  use Mix.Project
 
-# Fix unused Config alias
-sed -i '/alias LangChain.Config/d' lib/langchain/persistence/adapters/postgres.ex
+  @source_url "https://github.com/brainlid/langchain"
+  @version "0.3.0-rc.1"
 
-# Fix unused variables in tests
-sed -i 's/%{test_start_time: start_time}/%{test_start_time: _start_time}/' test/unit/provider_layer/providers/gemini/provider_test.exs
+  def project do
+    [
+      app: :langchain,
+      version: @version,
+      elixir: "~> 1.14",
+      elixirc_paths: elixirc_paths(Mix.env()),
+      test_options: [docs: true],
+      start_permanent: Mix.env() == :prod,
+      deps: deps(),
+      package: package(),
+      docs: &docs/0,
+      name: "LangChain",
+      homepage_url: @source_url,
+      description: """
+      Elixir implementation of a LangChain style framework.
+      """
+    ]
+  end
 
-# Add missing dependencies in mix.exs
-echo "Adding missing dependencies..."
-sed -i '/deps do/a\      {:httpoison, "~> 2.0"},\n      {:ecto, "~> 3.10"},' mix.exs
+  def application do
+    [
+      extra_applications: [:logger]
+    ]
+  end
 
-# Create missing behaviours
-mkdir -p lib/langchain/middleware
-cat > lib/langchain/middleware/behaviour.ex << 'EOL'
-defmodule LangChain.Middleware.Behaviour do
-  @callback handle_request(context :: map(), next :: function()) :: {:ok, map()} | {:error, any()}
+  defp elixirc_paths(:test), do: ["lib", "test/support"]
+  defp elixirc_paths(_), do: ["lib"]
+
+  defp deps do
+    [
+      {:httpoison, "~> 2.0"},
+      {:ecto, "~> 3.10 or ~> 3.11"},
+      {:gettext, "~> 0.20"},
+      {:req, ">= 0.5.2"},
+      {:abacus, "~> 2.1.0", optional: true},
+      {:nx, ">= 0.7.0", optional: true},
+      {:ex_doc, "~> 0.34", only: :dev, runtime: false},
+      {:mimic, "~> 1.8", only: :test}
+    ]
+  end
+
+  defp docs do
+    [
+      main: "readme",
+      source_ref: "v#{@version}",
+      source_url: @source_url,
+      assets: %{"notebooks/files" => "files"},
+      skip_undefined_reference_warnings_on: ["CHANGELOG.md"],
+      logo: "images/elixir-langchain-link-logo_32px.png",
+      extra_section: "Guides",
+      extras: extras(),
+      groups_for_extras: [
+        Notebooks: Path.wildcard("notebooks/*.livemd")
+      ],
+      groups_for_modules: [
+        "Chat Models": [
+          LangChain.ChatModels.ChatOpenAI,
+          LangChain.ChatModels.ChatAnthropic,
+          LangChain.ChatModels.ChatBumblebee,
+          LangChain.ChatModels.ChatGoogleAI,
+          LangChain.ChatModels.ChatVertexAI,
+          LangChain.ChatModels.ChatMistralAI,
+          LangChain.ChatModels.ChatOllamaAI,
+          LangChain.ChatModels.ChatModel
+        ],
+        Chains: [
+          LangChain.Chains.LLMChain,
+          LangChain.Chains.TextToTitleChain,
+          LangChain.Chains.SummarizeConversationChain,
+          LangChain.Chains.DataExtractionChain
+        ],
+        Messages: [
+          LangChain.Message,
+          LangChain.MessageDelta,
+          LangChain.Message.ContentPart,
+          LangChain.Message.ToolCall,
+          LangChain.Message.ToolResult,
+          LangChain.PromptTemplate,
+          LangChain.MessageProcessors,
+          LangChain.MessageProcessors.JsonProcessor,
+          LangChain.TokenUsage
+        ],
+        Functions: [
+          LangChain.Function,
+          LangChain.FunctionParam
+        ],
+        Callbacks: [
+          LangChain.Callbacks,
+          LangChain.ChatModels.LLMCallbacks,
+          LangChain.Chains.ChainCallbacks
+        ],
+        Routing: [
+          LangChain.Chains.RoutingChain,
+          LangChain.Routing.PromptRoute
+        ],
+        Images: [
+          LangChain.Images,
+          LangChain.Images.OpenAIImage,
+          LangChain.Images.GeneratedImage
+        ],
+        Tools: [
+          LangChain.Tools.Calculator
+        ],
+        Utils: [
+          LangChain.Utils,
+          LangChain.Utils.BedrockConfig,
+          LangChain.Utils.ChatTemplates,
+          LangChain.Utils.ChainResult,
+          LangChain.Config,
+          LangChain.Gettext
+        ]
+      ]
+    ]
+  end
+
+  defp extras do
+    [
+      "README.md",
+      "CHANGELOG.md",
+      "notebooks/getting_started.livemd",
+      "notebooks/custom_functions.livemd",
+      "notebooks/context-specific-image-descriptions.livemd"
+    ]
+  end
+
+  defp package do
+    [
+      files: ["lib", "mix.exs", "README*", "LICENSE*"],
+      maintainers: ["Mark Ericksen"],
+      licenses: ["Apache-2.0"],
+      links: %{"GitHub" => @source_url}
+    ]
+  end
 end
 EOL
-
-# Create provider behaviour
-mkdir -p lib/provider_layer/behaviors
-cat > lib/provider_layer/behaviors/provider.ex << 'EOL'
-defmodule LangChain.Provider do
-  @callback generate_content(prompt :: String.t(), opts :: keyword()) :: {:ok, any()} | {:error, any()}
-end
-EOL
-
-# Fix unused functions in generative_model.ex
-sed -i '/defp apply_middleware/,/end/d' lib/provider_layer/providers/gemini/generative_model.ex
-sed -i '/defp apply_logging_middleware/,/end/d' lib/provider_layer/providers/gemini/generative_model.ex
-sed -i '/defp apply_persistence_middleware/,/end/d' lib/provider_layer/providers/gemini/generative_model.ex
-sed -i '/defp apply_error_handling_middleware/,/end/d' lib/provider_layer/providers/gemini/generative_model.ex
-sed -i '/defp parse_response/,/end/d' lib/provider_layer/providers/gemini/generative_model.ex
 

@@ -23,7 +23,6 @@ defmodule LangChain.MixProject do
     ]
   end
 
-  # Run "mix help compile.app" to learn about applications.
   def application do
     [
       extra_applications: [:logger]
@@ -33,11 +32,9 @@ defmodule LangChain.MixProject do
   defp elixirc_paths(:test), do: ["lib", "test/support"]
   defp elixirc_paths(_), do: ["lib"]
 
-  # Run "mix help deps" to learn about dependencies.
   defp deps do
-      {:httpoison, "~> 2.0"},
-      {:ecto, "~> 3.10"},
     [
+      {:httpoison, "~> 2.0"},
       {:ecto, "~> 3.10 or ~> 3.11"},
       {:gettext, "~> 0.20"},
       {:req, ">= 0.5.2"},
@@ -133,8 +130,6 @@ defmodule LangChain.MixProject do
   end
 
   defp package do
-    # Note: the Livebook notebooks and related files are not included in the
-    # package.
     [
       files: ["lib", "mix.exs", "README*", "LICENSE*"],
       maintainers: ["Mark Ericksen"],
