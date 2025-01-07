@@ -3,28 +3,30 @@ defmodule LangChain.Provider.Gemini.Provider do
   alias LangChain.Google.GenerativeModel
 
   def generate_content(prompt, opts \\ []) do
-    request_config = case Keyword.get(opts, :structured_output) do
-      nil -> []
-      schema -> 
-        schema_json = Jason.encode!(convert_schema_format(schema))
-        [
-          tools: [%{
-            functionDeclarations: [%{
-              name: "process_structured_output",
-              description: "Process structured output according to schema",
-              parameters: convert_schema_format(schema)
-            }]
-          }]
-        ]
-    end
-
     {final_prompt, config} = case Keyword.get(opts, :structured_output) do
       nil -> {prompt, [temperature: 0.1, candidate_count: 1]}
       schema ->
-        schema_json = Jason.encode!(convert_schema_format(schema))
+        schema_str = """
+        {
+          "type": "object",
+          "properties": {
+            "languages": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": {"type": "string"},
+                  "paradigm": {"type": "string"},
+                  "year_created": {"type": "number"}
+                }
+              }
+            }
+          }
+        }
+        """
         {
           """
-          Return a JSON response matching this schema: #{schema_json}
+          Return a JSON response matching this schema: #{schema_str}
 
           Important: Your response must be valid JSON only, no other text.
           Do not include markdown formatting or code blocks.
@@ -73,4 +75,3 @@ defmodule LangChain.Provider.Gemini.Provider do
   end
   defp convert_properties(_), do: %{}
 end
-
