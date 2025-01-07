@@ -152,33 +152,72 @@ defmodule LangChain.Test.Unit.Providers.Gemini.ProviderTest do
       Logger.info("✅ Generated valid response: #{response}")
     end
 
-    test "handles complex structured output" do
-      schema = %{
-        type: :object,
-        properties: %{
-          analysis: %{
-            type: :object,
-            required: true,
-            properties: %{
-              main_points: %{type: :array, items: %{type: :string}},
-              sentiment: %{type: :string, enum: ["positive", "neutral", "negative"]},
-              word_count: %{type: :number}
+    describe "structured output handling" do
+      test "handles complex structured output" do
+        schema = %{
+          type: :object,
+          properties: %{
+            analysis: %{
+              type: :object,
+              required: true,
+              properties: %{
+                main_points: %{type: :array, items: %{type: :string}},
+                sentiment: %{type: :string, enum: ["positive", "neutral", "negative"]},
+                word_count: %{type: :number}
+              }
             }
           }
         }
-      }
 
-      {:ok, parsed_json} = Provider.generate_content(
-        "Analyze this text: 'Elixir is a dynamic, functional language designed for building scalable and maintainable applications.'",
-        structured_output: schema
-      )
+        {:ok, parsed_json} = Provider.generate_content(
+          "Analyze this text: 'Elixir is a dynamic, functional language designed for building scalable and maintainable applications.'",
+          structured_output: schema
+        )
 
-      assert Map.has_key?(parsed_json, "analysis")
-      assert is_list(parsed_json["analysis"]["main_points"])
-      assert parsed_json["analysis"]["sentiment"] in ["positive", "neutral", "negative"]
-      assert is_number(parsed_json["analysis"]["word_count"])
-      
-      Logger.info("✅ Generated valid structured analysis: #{inspect(parsed_json, pretty: true)}")
+        assert Map.has_key?(parsed_json, "analysis")
+        assert is_list(parsed_json["analysis"]["main_points"])
+        assert parsed_json["analysis"]["sentiment"] in ["positive", "neutral", "negative"]
+        assert is_number(parsed_json["analysis"]["word_count"])
+        
+        Logger.info("✅ Generated valid structured analysis: #{inspect(parsed_json, pretty: true)}")
+      end
+
+      test "handles empty structured responses" do
+        {:ok, parsed_json} = Provider.generate_content(
+          "",
+          structured_output: %{type: :object, properties: %{}}
+        )
+        
+        assert map_size(parsed_json) == 0
+      end
+
+      test "handles invalid JSON gracefully" do
+        result = Provider.generate_content(
+          "Generate invalid JSON",
+          structured_output: %{type: :object, properties: %{}}
+        )
+        
+        assert match?({:error, _}, result)
+      end
+
+      test "validates schema compliance" do
+        schema = %{
+          type: :object,
+          properties: %{
+            count: %{type: :number},
+            items: %{type: :array, items: %{type: :string}}
+          }
+        }
+
+        {:ok, parsed_json} = Provider.generate_content(
+          "Generate a list of 3 fruits",
+          structured_output: schema
+        )
+
+        assert is_number(parsed_json["count"])
+        assert is_list(parsed_json["items"])
+        assert Enum.all?(parsed_json["items"], &is_binary/1)
+      end
     end
   end
 end

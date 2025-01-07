@@ -30,5 +30,58 @@ defmodule LangChain.Test.Fixtures.Providers.GeminiFixtures do
       ]
     }
   end
-end
 
+  def mock_structured_analysis_response do
+    %{
+      "candidates" => [
+        %{
+          "content" => %{
+            "parts" => [
+              %{
+                "text" => ~s({
+                  "analysis": {
+                    "main_points": ["Dynamic language", "Functional paradigm", "Built for scalability"],
+                    "sentiment": "positive",
+                    "word_count": 12
+                  }
+                })
+              }
+            ]
+          }
+        }
+      ]
+    }
+  end
+
+  def mock_invalid_json_response do
+    %{
+      "candidates" => [
+        %{
+          "content" => %{
+            "parts" => [
+              %{
+                "text" => "Invalid JSON {test: 'broken"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  end
+
+  def mock_empty_response do
+    %{
+      "candidates" => [
+        %{
+          "content" => %{
+            "parts" => [
+              %{
+                "text" => "{}"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  end
+end
