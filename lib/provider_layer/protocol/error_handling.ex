@@ -14,7 +14,7 @@ defmodule LangChain.Protocol.ErrorHandling do
   end
 
   def handle_provider_error(error) do
-    {:error, Error.from_external(error)}
+    {:error, Error.new(:unknown_error, inspect(error))}
   end
 
   def handle_validation_error(reason) do

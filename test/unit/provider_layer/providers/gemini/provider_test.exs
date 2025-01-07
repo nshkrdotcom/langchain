@@ -1,6 +1,7 @@
+
 defmodule LangChain.Test.Unit.Providers.Gemini.ProviderTest do
   use LangChain.BaseTestCase
-  alias LangChain.Provider.Gemini.Provider
+  alias LangChain.Provider.Gemini
   alias LangChain.Test.Fixtures.Providers.GeminiFixtures
   require Logger
   @moduletag :live_call
@@ -9,7 +10,7 @@ defmodule LangChain.Test.Unit.Providers.Gemini.ProviderTest do
     test "handles basic text generation with mocked responses" do
       prompt = "What is the capital of France?"
       expected = GeminiFixtures.mock_text_response()
-      response = Provider.generate_content(prompt)
+      response = Gemini.generate_content(prompt)
 
       assert match?({:ok, _}, response)
       text = elem(response, 1)
@@ -25,7 +26,7 @@ defmodule LangChain.Test.Unit.Providers.Gemini.ProviderTest do
 
     test "handles structured JSON generation with validation" do
       prompt = "Generate JSON about programming languages"
-      response = Provider.generate_content(prompt)
+      response = Gemini.generate_content(prompt)
 
       assert match?({:ok, _}, response)
       text = elem(response, 1)
@@ -98,7 +99,7 @@ defmodule LangChain.Test.Unit.Providers.Gemini.ProviderTest do
         }
       }
 
-      {:ok, parsed_json} = Provider.generate_content("List 3 programming languages with their main features", structured_output: schema)
+      {:ok, parsed_json} = Gemini.generate_content("List 3 programming languages with their main features", structured_output: schema)
 
       # Validate response structure
       assert is_map(parsed_json)
@@ -121,7 +122,7 @@ defmodule LangChain.Test.Unit.Providers.Gemini.ProviderTest do
 
     test "successfully makes live API calls with proper response handling" do
       prompt = "What is quantum computing? Keep it brief."
-      case Provider.generate_content(prompt) do
+      case Gemini.generate_content(prompt) do
         {:ok, response} ->
           # Basic validation
           assert is_binary(response)
@@ -139,12 +140,12 @@ defmodule LangChain.Test.Unit.Providers.Gemini.ProviderTest do
     end
 
     test "handles invalid prompts gracefully" do
-      result = Provider.generate_content("")
+      result = Gemini.generate_content("")
       assert match?({:error, _}, result)
     end
 
     test "validates response structure" do
-      {:ok, response} = Provider.generate_content("What is functional programming?")
+      {:ok, response} = Gemini.generate_content("What is functional programming?")
       assert is_binary(response)
       assert String.length(response) > 20
       Logger.info("✅ Generated valid response: #{response}")
@@ -168,7 +169,7 @@ defmodule LangChain.Test.Unit.Providers.Gemini.ProviderTest do
           }
         }
 
-        {:ok, parsed_json} = Provider.generate_content(
+        {:ok, parsed_json} = Gemini.generate_content(
           "Analyze this text: 'Elixir is a dynamic, functional language designed for building scalable and maintainable applications.'",
           structured_output: schema
         )
@@ -182,7 +183,7 @@ defmodule LangChain.Test.Unit.Providers.Gemini.ProviderTest do
       end
 
       test "handles empty structured responses" do
-        {:ok, parsed_json} = Provider.generate_content(
+        {:ok, parsed_json} = Gemini.generate_content(
           "",
           structured_output: %{type: :object, properties: %{}}
         )
@@ -191,7 +192,7 @@ defmodule LangChain.Test.Unit.Providers.Gemini.ProviderTest do
       end
 
       test "handles invalid JSON gracefully" do
-        result = Provider.generate_content(
+        result = Gemini.generate_content(
           "Generate invalid JSON",
           structured_output: %{type: :object, properties: %{}}
         )
@@ -208,7 +209,7 @@ defmodule LangChain.Test.Unit.Providers.Gemini.ProviderTest do
           }
         }
 
-        {:ok, parsed_json} = Provider.generate_content(
+        {:ok, parsed_json} = Gemini.generate_content(
           "Generate a list of 3 fruits",
           structured_output: schema
         )
@@ -218,4 +219,4 @@ defmodule LangChain.Test.Unit.Providers.Gemini.ProviderTest do
         assert Enum.all?(parsed_json["items"], &is_binary/1)
       end
     end
-  end
+end
