@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Parse command line arguments
-VERBOSE=false
+VERBOSE=true
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in

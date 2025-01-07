@@ -81,3 +81,14 @@ end
 ### Test Fixtures
 
 Fixtures are located in `test/support/fixtures/` and can be accessed via the `Fixtures` module in your tests.
+
+### Test Execution
+
+```bash
+# Run tests with verbose output (default)
+./run_tests.sh
+
+# Run tests without verbose output
+./run_tests.sh --no-verbose
+```
+
