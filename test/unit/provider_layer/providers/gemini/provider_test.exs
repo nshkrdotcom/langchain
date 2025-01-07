@@ -172,7 +172,7 @@ defmodule LangChain.Test.Unit.Providers.Gemini.ProviderTest do
       assert parsed_json["analysis"]["sentiment"] in ["positive", "neutral", "negative"]
       assert is_number(parsed_json["analysis"]["word_count"])
 
-      Logger.info("✅ Generated valid structured analysis: #{inspect(response, pretty: true)}")
+      Logger.info("✅ Generated valid structured analysis: #{inspect(parsed_json, pretty: true)}")
     end
 
     test "handles empty structured responses" do
