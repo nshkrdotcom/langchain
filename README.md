@@ -6,7 +6,7 @@ LangChain provides integration with Google's Gemini API through the Provider mod
 ### Basic Usage
 
 ```elixir
-alias LangChain.Provider.Gemini.Provider
+alias LangChain.Provider.Gemini.GenerativeModel
 
 # Simple text generation
 {:ok, response} = Provider.generate_content("What is Elixir?")
@@ -30,7 +30,7 @@ schema = %{
 }
 
 # Generate structured content
-{:ok, json_response} = Provider.generate_content(
+{:ok, json_response} = GenerativeModel.generate_content(
   "List 3 programming languages",
   structured_output: schema
 )
@@ -54,13 +54,13 @@ The provider handles different response types:
 - Structured JSON: `{:ok, decoded_json}`
 - Errors: `{:error, reason}`
 ```elixir
-alias LangChain.Provider.Gemini.Provider
+alias LangChain.Provider.Gemini.GenerativeModel
 
 # Generate simple text content
-{:ok, response} = Provider.generate_content("What is Elixir?")
+{:ok, response} = GenerativeModel.generate_content("What is Elixir?")
 
 # Generate structured JSON by force
-{:ok, json_response} = Provider.generate_content("List 3 programming languages as JSON")
+{:ok, json_response} = GenerativeModel.generate_content("List 3 programming languages as JSON")
 
 # Use Gemini's structured output feature
 schema = %{
@@ -80,7 +80,7 @@ schema = %{
   }
 }
 
-{:ok, structured_response} = Provider.generate_content(
+{:ok, structured_response} = GenerativeModel.generate_content(
   "List 3 programming languages",
   structured_output: schema
 )

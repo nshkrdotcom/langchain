@@ -1,5 +1,5 @@
-defmodule LangChain.Gemini.StreamingModel do
-  alias LangChain.Gemini.Client
+defmodule LangChain.Provider.Gemini.StreamingModel do
+  alias LangChain.Provider.Gemini.Client
 
   def stream_generate_content(prompt, opts) when is_binary(prompt) do
     request = build_streaming_request(prompt, opts)
